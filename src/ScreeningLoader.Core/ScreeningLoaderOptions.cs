@@ -1,28 +1,28 @@
 namespace ScreeningLoader.Core;
 
 /// <summary>
-/// Configuración del motor.
+/// Engine configuration.
 /// </summary>
 public sealed record ScreeningLoaderOptions
 {
     public string BaseUrl { get; init; } = "https://api.serenitystar.ai";
 
     /// <summary>
-    /// Código de la app que sirve el agente. Es lo que se configura: el agente se descubre a partir de él.
+    /// Code of the app that serves the agent. This is what gets configured: the agent is discovered from it.
     /// </summary>
     public string AppCode { get; init; } = "candidate-screening-studio";
 
 
     public int BatchSize { get; init; } = 10;
 
-    /// <summary>Tope de peso acumulado por lote. Provisional hasta medirlo con CVs reales.</summary>
+    /// <summary>Cap on combined size per batch. Provisional until measured with real CVs.</summary>
     public long MaxBatchBytes { get; init; } = 10L * 1024 * 1024;
 
     public int MaxParallelBatches { get; init; } = 1;
     public int MaxParallelUploads { get; init; } = 3;
 
     /// <summary>
-    /// Tope por archivo. Muy por debajo del techo real del Hub, que lo pone el servidor web cerca de los 30 MB.
+    /// Per-file cap. Well below the Hub's real ceiling, which the web server sets at around 30 MB.
     /// </summary>
     public int MaxFileSizeMb { get; init; } = 20;
     public bool ProcessEmbeddings { get; init; }
@@ -30,7 +30,7 @@ public sealed record ScreeningLoaderOptions
     public int UploadPollTimeoutMs { get; init; } = 120_000;
     public int RequestTimeoutMs { get; init; } = 100_000;
 
-    /// <summary>Tope de un turno de análisis. Un lote de diez CVs tarda minutos.</summary>
+    /// <summary>Cap on an analysis turn. A batch of ten CVs takes minutes.</summary>
     public int AnalyzeTimeoutMs { get; init; } = 900_000;
 
     public string ResponseLanguage { get; init; } = "Spanish";

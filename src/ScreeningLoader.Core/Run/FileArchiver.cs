@@ -3,12 +3,12 @@ using ScreeningLoader.Core.Discovery;
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Reparto de los archivos de un lote entre procesados y fallidos.
+/// Sorts a batch's files between procesados and fallidos.
 /// </summary>
 public sealed class FileArchiver(ScreeningLoaderOptions options)
 {
     /// <summary>
-    /// Mueve cada archivo del lote a la carpeta que le corresponde según su desenlace.
+    /// Moves each file in the batch to the folder that matches its outcome.
     /// </summary>
     public ArchiveResult Archive(BatchOutcome outcome, string sourceFolder)
     {
@@ -20,8 +20,8 @@ public sealed class FileArchiver(ScreeningLoaderOptions options)
         foreach (CvFile file in outcome.Processed)
             TryMove(file.Path, file.FileName, processed, failedMoves);
 
-        // Todo lo fallido sale de pendientes sin clasificar la causa: un PDF ilegible no se vuelve legible
-        // solo, y dejarlo donde está lo hace fallar en cada corrida futura. La persona decide qué devolver.
+        // All failures leave pending regardless of cause: an unreadable PDF does not become readable on its own,
+        // and leaving it in place makes it fail on every future run. The user decides what to restore.
         foreach (FailedCv failure in outcome.ToReview)
             TryMove(Path.Combine(sourceFolder, failure.FileName), failure.FileName, review, failedMoves);
 
@@ -34,8 +34,8 @@ public sealed class FileArchiver(ScreeningLoaderOptions options)
         string destinationFolder,
         List<FailedMove> failedMoves)
     {
-        // Un move que falla no aborta la corrida: cuesta un duplicado posible en la próxima, y abortar
-        // cuesta el resto del trabajo.
+        // A failed move does not abort the run: it costs a possible duplicate on the next one, and aborting
+        // costs the rest of the work.
         try
         {
             Directory.CreateDirectory(destinationFolder);
@@ -48,7 +48,7 @@ public sealed class FileArchiver(ScreeningLoaderOptions options)
     }
 
     /// <summary>
-    /// Un destino libre, para que archivar no pise un archivo que ya está ahí.
+    /// A free destination, so that archiving does not overwrite a file already there.
     /// </summary>
     private static string Unique(string folder, string fileName)
     {

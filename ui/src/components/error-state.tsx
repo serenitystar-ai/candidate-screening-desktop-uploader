@@ -10,8 +10,8 @@ interface ErrorStateProps {
 }
 
 /**
- * El patrón de error: qué ha pasado, qué hacer, y una sola salida. Los fatales cambian el texto,
- * no la forma.
+ * The error pattern: what happened, what to do, and a single way out. Fatal errors change the text,
+ * not the shape.
  */
 export function ErrorState({ title, detail, actionLabel, onAction }: ErrorStateProps) {
   return (

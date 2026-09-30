@@ -83,7 +83,7 @@ export function SettingsScreen({ settings, error, busy, onSave }: SettingsScreen
               onChange={(event) => set("responseLanguage", event.target.value)}
               className="border-input focus-visible:border-ring focus-visible:ring-ring/50 h-9 w-48 rounded-md border bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:ring-[3px]"
             >
-              {/* Un valor guardado que no esté en la lista sigue siendo válido para el agente. */}
+              {/* A saved value that isn't in the list is still valid for the agent. */}
               {(languages.includes(draft.responseLanguage)
                 ? languages
                 : [draft.responseLanguage, ...languages]
@@ -168,8 +168,8 @@ export function SettingsScreen({ settings, error, busy, onSave }: SettingsScreen
 const columnsFor = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-3" } as const;
 
 /**
- * Una fila de campos. El subgrid alinea etiquetas, descripciones y controles entre columnas aunque una
- * descripción ocupe dos líneas y su vecina una.
+ * A row of fields. The subgrid aligns labels, descriptions and controls across columns even when one
+ * description takes two lines and its neighbor one.
  */
 function Row({ columns, children }: { columns: 1 | 2 | 3; children: ReactNode }) {
   return (
@@ -209,8 +209,8 @@ function Measure({ unit, children }: { unit: string; children: ReactNode }) {
 }
 
 /**
- * Las perillas del motor, plegadas. Están para no tener que recompilar por un ajuste, no para tocarlas
- * a diario.
+ * The engine's knobs, collapsed. They exist to avoid recompiling for a setting, not to be touched
+ * daily.
  */
 function Advanced({ children }: { children: ReactNode }) {
   return (

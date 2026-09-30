@@ -3,11 +3,11 @@ using System.Text.Json;
 namespace ScreeningLoader.Core;
 
 /// <summary>
-/// Lo que la persona cambió de la configuración del motor. Null en cada campo que no tocó.
+/// What the user changed in the engine configuration. Null in every field they did not touch.
 /// </summary>
 /// <remarks>
-/// Se guarda como capa sobre los valores por defecto y no como la configuración entera: así un campo nuevo
-/// en <see cref="ScreeningLoaderOptions"/> no queda congelado con su valor viejo en el archivo de nadie.
+/// Saved as a layer over the defaults rather than as the whole configuration: that way a new field
+/// in <see cref="ScreeningLoaderOptions"/> does not stay frozen at its old value in anyone's file.
 /// </remarks>
 public sealed record SettingsOverlay(
     string? AppCode,
@@ -21,14 +21,14 @@ public sealed record SettingsOverlay(
 }
 
 /// <summary>
-/// Preferencias locales que sobreviven al cierre de la aplicación.
+/// Local preferences that survive closing the application.
 /// </summary>
 public sealed class Preferences(string path)
 {
     private static readonly JsonSerializerOptions s_json = new(JsonSerializerDefaults.Web);
 
     /// <summary>
-    /// Archivo donde se guardan, junto al resto del estado local de la aplicación.
+    /// File where they are saved, alongside the rest of the application's local state.
     /// </summary>
     public static string DefaultPath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -36,13 +36,13 @@ public sealed class Preferences(string path)
         "preferences.json");
 
     /// <summary>
-    /// Devuelve la carpeta que se usó la última vez para esta oferta, si todavía existe.
+    /// Returns the folder last used for this job opening, if it still exists.
     /// </summary>
     public string? FolderFor(string openingId) =>
         Read().Folders.GetValueOrDefault(openingId) is { } folder && Directory.Exists(folder) ? folder : null;
 
     /// <summary>
-    /// Recuerda la carpeta de una oferta, para no volver a buscarla en la próxima corrida.
+    /// Remembers a job opening's folder, so it does not have to be looked up again on the next run.
     /// </summary>
     public void RememberFolder(string openingId, string folder)
     {
@@ -54,12 +54,12 @@ public sealed class Preferences(string path)
     }
 
     /// <summary>
-    /// Devuelve los ajustes guardados.
+    /// Returns the saved settings.
     /// </summary>
     public SettingsOverlay ReadSettings() => Read().Settings ?? SettingsOverlay.Empty;
 
     /// <summary>
-    /// Guarda los ajustes, conservando el resto de las preferencias.
+    /// Saves the settings, keeping the rest of the preferences.
     /// </summary>
     public void SaveSettings(SettingsOverlay settings)
     {
@@ -79,7 +79,7 @@ public sealed class Preferences(string path)
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            // Una preferencia que no se puede guardar cuesta un clic más, no la corrida.
+            // A preference that cannot be saved costs one more click, not the run.
         }
     }
 

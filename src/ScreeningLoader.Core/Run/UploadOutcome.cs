@@ -4,7 +4,7 @@ using ScreeningLoader.Core.Serenity;
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Un CV que quedó listo para viajar a una ejecución.
+/// A CV that is ready to be sent to an execution.
 /// </summary>
 public sealed record UploadedCv(CvFile File, Guid VolatileKnowledgeId, Guid? FileId)
 {
@@ -13,21 +13,21 @@ public sealed record UploadedCv(CvFile File, Guid VolatileKnowledgeId, Guid? Fil
 }
 
 /// <summary>
-/// Un CV que quedó afuera de la ejecución, y por qué.
+/// A CV that was left out of the execution, and why.
 /// </summary>
 public sealed record FailedCv(string FileName, string Reason);
 
 /// <summary>
-/// Cómo terminó la subida de un lote.
+/// How a batch's upload ended.
 /// </summary>
 public sealed record UploadOutcome(IReadOnlyList<UploadedCv> Ready, IReadOnlyList<FailedCv> Failed);
 
 /// <summary>
-/// El desenlace de cada archivo del lote, resuelto contra el dataset.
+/// The outcome of each file in the batch, resolved against the dataset.
 /// </summary>
 public sealed record BatchOutcome(IReadOnlyList<CvFile> Processed, IReadOnlyList<FailedCv> ToReview);
 
 /// <summary>
-/// Cómo terminó un lote: qué desenlace tuvo cada archivo y qué no se pudo mover.
+/// How a batch ended: the outcome of each file and what could not be moved.
 /// </summary>
 public sealed record BatchResult(BatchOutcome Outcome, ArchiveResult Archive);

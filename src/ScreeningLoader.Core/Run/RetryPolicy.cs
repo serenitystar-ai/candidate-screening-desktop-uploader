@@ -3,14 +3,14 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Reintento con backoff ante las condiciones que se resuelven esperando.
+/// Retry with backoff for conditions that resolve by waiting.
 /// </summary>
 public sealed class RetryPolicy(ScreeningLoaderOptions options, ErrorLog errorLog, TimeProvider timeProvider)
 {
     private static readonly TimeSpan s_maxDelay = TimeSpan.FromMinutes(2);
 
     /// <summary>
-    /// Ejecuta una operación reintentando las condiciones que se resuelven esperando.
+    /// Runs an operation, retrying the conditions that resolve by waiting.
     /// </summary>
     public async Task<T> ExecuteAsync<T>(
         string operation,
@@ -24,13 +24,13 @@ public sealed class RetryPolicy(ScreeningLoaderOptions options, ErrorLog errorLo
             {
                 return await action(ct);
             }
-            // La política se lee de la taxonomía: sólo se reintenta lo que el error declara transitorio.
+            // The policy is read from the taxonomy: only what the error declares transient is retried.
             catch (ScreeningLoaderException ex)
                 when (ex.Kind is ErrorKind.Transient && attempt < options.RetryMaxAttempts)
             {
                 TimeSpan delay = DelayFor(attempt, ex);
 
-                errorLog.Write($"{operation} intento={attempt}", ex);
+                errorLog.Write($"{operation} attempt={attempt}", ex);
                 emit(new RetryWaiting(operation, attempt, delay, ex.Message));
 
                 await Task.Delay(delay, timeProvider, ct);
@@ -39,15 +39,15 @@ public sealed class RetryPolicy(ScreeningLoaderOptions options, ErrorLog errorLo
     }
 
     /// <summary>
-    /// Backoff exponencial, respetando el Retry-After del servidor cuando lo manda.
+    /// Exponential backoff, honoring the server's Retry-After when it sends one.
     /// </summary>
     private TimeSpan DelayFor(int attempt, ScreeningLoaderException ex)
     {
         if (ex.RetryAfter is { } retryAfter && retryAfter > TimeSpan.Zero)
             return retryAfter < s_maxDelay ? retryAfter : s_maxDelay;
 
-        // El límite real puede venir del plan o del agente, no de las reglas generales, así que se cede
-        // terreno rápido en vez de insistir con una espera fija.
+        // The real limit may come from the plan or the agent, not from the general rules, so it backs off
+        // quickly instead of insisting with a fixed wait.
         TimeSpan backoff = TimeSpan.FromMilliseconds(options.RetryBaseDelayMs * Math.Pow(2, attempt - 1));
 
         return backoff < s_maxDelay ? backoff : s_maxDelay;

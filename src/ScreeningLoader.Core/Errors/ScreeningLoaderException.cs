@@ -3,16 +3,16 @@ using System.Net;
 namespace ScreeningLoader.Core.Errors;
 
 /// <summary>
-/// Error del motor que declara cómo debe tratarse.
+/// Engine error that declares how it must be handled.
 /// </summary>
 public class ScreeningLoaderException(ErrorKind kind, string message, Exception? inner = null)
     : Exception(message, inner)
 {
     public ErrorKind Kind { get; } = kind;
 
-    /// <summary>Estado con el que respondió el AI Hub, cuando el error vino de una llamada.</summary>
+    /// <summary>Status the AI Hub responded with, when the error came from a call.</summary>
     public HttpStatusCode? StatusCode { get; init; }
 
-    /// <summary>Cuánto pidió el servidor que se espere antes de reintentar, si lo dijo.</summary>
+    /// <summary>How long the server asked to wait before retrying, if it said so.</summary>
     public TimeSpan? RetryAfter { get; init; }
 }

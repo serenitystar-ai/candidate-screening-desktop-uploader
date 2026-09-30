@@ -99,7 +99,7 @@ function Body({
             : "Puede que ya se hayan procesado y estén en procesados o en fallidos. Si no, elige otra carpeta."}
         </p>
 
-        {/* Sin esta salida, una carpeta con todo procesado y algo fallido no tendría cómo reintentarlo. */}
+        {/* Without this way out, a folder with everything processed and something failed couldn't retry it. */}
         {failed.length > 0 ? (
           <Button className="mt-2" onClick={() => onRestore(names(failed))}>
             Devolver {failed.length} a la carpeta
@@ -157,13 +157,13 @@ function Body({
             />
           ))}
 
-          {/* Lo que descartó el filtro no ofrece el gesto: no se vuelve procesable porque alguien insista. */}
+          {/* What the filter discarded doesn't offer the action: it doesn't become processable because someone insists. */}
           {discovery.excluded.map((file) => (
             <Row key={file.fileName} name={file.fileName} note={file.reason} muted />
           ))}
         </Column>
 
-        {/* Sin fallidos el bloque no aporta nada: no hay nada que devolver y Excluidos se queda el sitio. */}
+        {/* Without failed files the block adds nothing: there's nothing to restore and Excluidos takes the space. */}
         {failed.length > 0 ? (
           <Column
             title="Fallidos"

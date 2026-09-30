@@ -4,7 +4,7 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Lectura del stream de eventos de una ejecución.
+/// Reading of an execution's event stream.
 /// </summary>
 internal static class SseReader
 {
@@ -17,7 +17,7 @@ internal static class SseReader
     public const string TaskStart = "task_start";
 
     /// <summary>
-    /// Consume el stream hasta el cierre y devuelve el resultado del turno.
+    /// Consumes the stream until it closes and returns the turn's result.
     /// </summary>
     public static async Task<JsonElement> ReadUntilStopAsync(
         Stream stream,
@@ -37,10 +37,10 @@ internal static class SseReader
                 result = turn;
         }
 
-        // Un stream que termina sin cierre es un fallo, no un turno vacío.
+        // A stream that ends without closing is a failure, not an empty turn.
         return result ?? throw new ScreeningLoaderException(
             ErrorKind.Transient,
-            "El stream de la ejecución terminó sin evento de cierre.");
+            "The execution stream ended without a closing event.");
     }
 
     private static async IAsyncEnumerable<(string Name, JsonElement Data)> ReadEventsAsync(
@@ -55,7 +55,7 @@ internal static class SseReader
         {
             if (line.StartsWith(EventPrefix, StringComparison.Ordinal))
             {
-                // El Hub escribe un espacio antes del salto: el nombre llega como "stop ".
+                // The Hub writes a space before the line break: the name arrives as "stop ".
                 announced = line[EventPrefix.Length..].Trim();
                 continue;
             }
@@ -71,7 +71,7 @@ internal static class SseReader
             if (!TryParse(payload, out JsonElement data))
                 continue;
 
-            // El nombre viaja en la línea event: y otra vez dentro del JSON; se prefiere el del cuerpo.
+            // The name travels in the event: line and again inside the JSON; the one in the body is preferred.
             string name = data.TryGetProperty("type", out JsonElement type)
                 && type.ValueKind is JsonValueKind.String
                     ? type.GetString()!
@@ -103,5 +103,5 @@ internal static class SseReader
     private static string ReadErrorMessage(JsonElement data) =>
         data.TryGetProperty("message", out JsonElement message) && message.ValueKind is JsonValueKind.String
             ? message.GetString()!
-            : "La ejecución falló sin detalle.";
+            : "The execution failed without detail.";
 }

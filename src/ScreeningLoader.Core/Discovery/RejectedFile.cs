@@ -1,27 +1,27 @@
 namespace ScreeningLoader.Core.Discovery;
 
 /// <summary>
-/// Un archivo que no entra a la corrida, y por qué.
+/// A file that is left out of the run, and why.
 /// </summary>
 public sealed record RejectedFile(string FileName, RejectionReason Reason);
 
 /// <summary>
-/// Motivo por el que un archivo queda afuera antes de subirse.
+/// Reason a file is left out before being uploaded.
 /// </summary>
 public enum RejectionReason
 {
-    /// <summary>El agente no acepta ese tipo de archivo.</summary>
+    /// <summary>The agent does not accept that file type.</summary>
     UnsupportedType,
 
-    /// <summary>No tiene contenido.</summary>
+    /// <summary>It has no content.</summary>
     Empty,
 
-    /// <summary>Supera el tamaño máximo por archivo.</summary>
+    /// <summary>It exceeds the maximum size per file.</summary>
     TooLarge,
 
-    /// <summary>Por sí solo excede el presupuesto de peso de un lote.</summary>
+    /// <summary>On its own it exceeds a batch's size budget.</summary>
     ExceedsBatchBudget,
 
-    /// <summary>La persona lo dejó fuera de esta corrida.</summary>
+    /// <summary>The user left it out of this run.</summary>
     ExcludedByUser
 }

@@ -3,12 +3,12 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Discovery;
 
 /// <summary>
-/// Descubrimiento y filtrado de los archivos de una carpeta.
+/// Discovery and filtering of the files in a folder.
 /// </summary>
 public sealed class FileDiscovery(ScreeningLoaderOptions options)
 {
     /// <summary>
-    /// Clasifica los archivos de una carpeta en aceptados y descartados, y arma los lotes.
+    /// Classifies the files in a folder as accepted or rejected, and builds the batches.
     /// </summary>
     public DiscoveryResult Discover(string folder, IReadOnlyList<string> acceptedMimeTypes)
     {
@@ -31,9 +31,9 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
     }
 
     /// <summary>
-    /// Devuelve a la carpeta los archivos que estaban en la de fallidos.
+    /// Moves the files that were in the failed folder back to the folder.
     /// </summary>
-    /// <returns>Cuántos se movieron.</returns>
+    /// <returns>How many were moved.</returns>
     public int Restore(string folder, IEnumerable<string> fileNames)
     {
         HashSet<string> wanted = [.. fileNames];
@@ -41,8 +41,8 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
 
         foreach (CvFile file in Failed(folder).Where(file => wanted.Contains(file.FileName)))
         {
-            // Un archivo que no se puede mover deja de contar y los demás siguen: la próxima lectura de la
-            // carpeta muestra lo que quedó, así que no hace falta avisar de otra forma.
+            // A file that cannot be moved is not counted and the rest carry on: the next read of the
+            // folder shows what was left, so there is no need to report it any other way.
             try
             {
                 File.Move(file.Path, Unique(folder, file.FileName), overwrite: false);
@@ -57,8 +57,8 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
     }
 
     /// <summary>
-    /// Lo que hay en la subcarpeta de fallidos, sin filtrar: se devuelve para poder reintentarlo, y el
-    /// filtro corre de nuevo cuando vuelva a la carpeta.
+    /// What is in the failed subfolder, unfiltered: it is restored so it can be retried, and the
+    /// filter runs again once it is back in the folder.
     /// </summary>
     private IReadOnlyList<CvFile> Failed(string folder)
     {
@@ -76,7 +76,7 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
     }
 
     /// <summary>
-    /// Un destino libre, para que devolver un archivo no pise otro con el mismo nombre.
+    /// A free destination, so that restoring a file does not overwrite another with the same name.
     /// </summary>
     private static string Unique(string folder, string fileName)
     {
@@ -98,7 +98,7 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
     }
 
     /// <summary>
-    /// Agrupa los archivos aceptados en lotes, cortando por cantidad o por peso acumulado.
+    /// Groups the accepted files into batches, splitting by count or by combined size.
     /// </summary>
     public IReadOnlyList<Batch> IntoBatches(IReadOnlyList<CvFile> files)
     {
@@ -135,7 +135,7 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
         if (!directory.Exists)
             throw new ScreeningLoaderException(ErrorKind.Fatal, $"La carpeta '{folder}' no existe.");
 
-        // Sin recursión: procesados/ y fallidos/ son subcarpetas de ésta y no vuelven a entrar.
+        // No recursion: procesados/ and fallidos/ are subfolders of this one and must not come back in.
         return directory.EnumerateFiles().OrderBy(file => file.Name, StringComparer.OrdinalIgnoreCase);
     }
 
@@ -150,7 +150,7 @@ public sealed class FileDiscovery(ScreeningLoaderOptions options)
         if (file.Length > options.MaxFileSizeMb * 1024L * 1024L)
             return RejectionReason.TooLarge;
 
-        // Un archivo que por sí solo no entra en un lote se descarta acá, en vez de mandarlo a rebotar.
+        // A file that does not fit in a batch on its own is rejected here, rather than sent off to bounce.
         if (file.Length > options.MaxBatchBytes)
             return RejectionReason.ExceedsBatchBudget;
 

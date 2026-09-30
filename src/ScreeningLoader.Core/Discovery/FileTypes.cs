@@ -1,13 +1,13 @@
 namespace ScreeningLoader.Core.Discovery;
 
 /// <summary>
-/// Correspondencia entre los MIME types que acepta el agente y las extensiones en disco.
+/// Mapping between the MIME types the agent accepts and the file extensions on disk.
 /// </summary>
 internal static class FileTypes
 {
     /// <summary>
-    /// Las dos direcciones se escriben aparte porque no son simétricas: un MIME cubre varias extensiones
-    /// y varios MIME cubren la misma.
+    /// The two directions are written separately because they are not symmetric: one MIME covers several
+    /// extensions and several MIMEs cover the same one.
     /// </summary>
     private static readonly Dictionary<string, string[]> s_extensionsByMimeType = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -40,7 +40,7 @@ internal static class FileTypes
     };
 
     /// <summary>
-    /// Traduce los MIME types que publica el agente a las extensiones que se buscan en disco.
+    /// Translates the MIME types the agent publishes into the extensions searched for on disk.
     /// </summary>
     public static IReadOnlySet<string> ExtensionsFor(IReadOnlyList<string> mimeTypes)
     {
@@ -48,8 +48,8 @@ internal static class FileTypes
 
         foreach (string mimeType in mimeTypes)
         {
-            // La lista mezcla MIME types con alguna extensión suelta. Un MIME que no conocemos no se
-            // acepta: es preferible descartar un archivo de más que subir uno que va a rebotar.
+            // The list mixes MIME types with the odd bare extension. An unknown MIME is not
+            // accepted: better to reject one file too many than to upload one that will bounce.
             if (mimeType.StartsWith('.'))
                 extensions.Add(mimeType);
             else if (s_extensionsByMimeType.TryGetValue(mimeType, out string[]? mapped))
@@ -60,7 +60,7 @@ internal static class FileTypes
     }
 
     /// <summary>
-    /// El Content-Type con el que viaja un archivo en la subida.
+    /// The Content-Type a file is sent with in the upload.
     /// </summary>
     public static string ContentTypeFor(string fileName) =>
         s_mimeTypeByExtension.GetValueOrDefault(Path.GetExtension(fileName), "application/octet-stream");

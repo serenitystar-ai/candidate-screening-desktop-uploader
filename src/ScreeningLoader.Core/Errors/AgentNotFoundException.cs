@@ -1,10 +1,10 @@
 namespace ScreeningLoader.Core.Errors;
 
 /// <summary>
-/// No se pudo decidir qué agente sirve la app configurada.
+/// It could not be determined which agent serves the configured app.
 /// </summary>
 /// <remarks>
-/// Se distingue del resto de los fatales porque el host la muestra con su propia pantalla: es lo único
-/// que se arregla cambiando un ajuste y no llamando a quien administra el AI Hub.
+/// Kept apart from the other fatal errors because the host shows it on its own screen: it is the only one
+/// fixed by changing a setting rather than by calling whoever administers the AI Hub.
 /// </remarks>
 public sealed class AgentNotFoundException(string message) : ScreeningLoaderException(ErrorKind.Fatal, message);

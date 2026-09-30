@@ -13,14 +13,14 @@ node_modules/
 ui/dist/
 .pnpm-store/
 
-# Configuración local
+# Local configuration
 appsettings.Development.json
 *.local.json
 launchSettings.json
 
-# Instalador
+# Installer
 installer/Output/
 
-# Sistema operativo
+# Operating system
 Thumbs.db
 .DS_Store

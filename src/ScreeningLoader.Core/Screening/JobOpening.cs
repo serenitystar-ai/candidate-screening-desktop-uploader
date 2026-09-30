@@ -1,7 +1,7 @@
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// Una búsqueda laboral con su conteo de candidatos.
+/// A job opening with its candidate count.
 /// </summary>
 public sealed record JobOpening(
     string Id,

@@ -6,7 +6,7 @@ using ScreeningLoader.Core.Screening;
 
 namespace ScreeningLoader.Shell;
 
-/// <summary>Una oferta, sin la descripción: la interfaz no la muestra y es lo más pesado de la fila.</summary>
+/// <summary>A job opening, without the description: the interface does not show it and it is the heaviest part of the row.</summary>
 internal sealed record OpeningWire(
     string Id,
     string Title,
@@ -26,13 +26,13 @@ internal sealed record OpeningWire(
         opening.CandidateCount);
 }
 
-/// <summary>Un archivo que entra a la corrida.</summary>
+/// <summary>A file that goes into the run.</summary>
 internal sealed record DetectedWire(string FileName, long SizeBytes);
 
-/// <summary>Un archivo que el filtro dejó afuera, con el motivo ya escrito para leer.</summary>
+/// <summary>A file the filter left out, with the reason already written to be read.</summary>
 internal sealed record ExcludedWire(string FileName, string Reason);
 
-/// <summary>Los ajustes que la persona puede cambiar.</summary>
+/// <summary>The settings the person can change.</summary>
 internal sealed record SettingsWire(
     string AppCode,
     int MaxFileSizeMb,
@@ -41,7 +41,7 @@ internal sealed record SettingsWire(
     int BatchSize,
     int MaxBatchMb);
 
-/// <summary>Lo que se encontró en la carpeta.</summary>
+/// <summary>What was found in the folder.</summary>
 internal sealed record DiscoveryWire(
     IReadOnlyList<DetectedWire> Detected,
     IReadOnlyList<ExcludedWire> Excluded,
@@ -63,10 +63,10 @@ internal sealed record DiscoveryWire(
     };
 }
 
-/// <summary>Un archivo que no se registró, y por qué.</summary>
+/// <summary>A file that was not registered, and why.</summary>
 internal sealed record FailureWire(string FileName, string Reason);
 
-/// <summary>Una corrida anterior, tal como la lista el historial.</summary>
+/// <summary>A previous run, as the history lists it.</summary>
 internal sealed record RunWire(
     string Id,
     DateTimeOffset StartedAt,
@@ -78,7 +78,7 @@ internal sealed record RunWire(
     IReadOnlyList<FailureWire> Failures)
 {
     /// <param name="fallbackTitle">
-    /// Se usa sólo en las corridas registradas antes de que el título se guardara en el registro.
+    /// Used only for runs recorded before the title was saved in the record.
     /// </param>
     public static RunWire From(RunRecord run, string fallbackTitle) => new(
         run.Id,
@@ -91,14 +91,14 @@ internal sealed record RunWire(
         [.. run.ToReview.Select(failure => new FailureWire(failure.FileName, failure.Reason))]);
 }
 
-/// <summary>Un avance de la corrida, con la forma que consume la interfaz.</summary>
+/// <summary>A run progress update, in the shape the interface consumes.</summary>
 internal static class RunEventWire
 {
     /// <summary>
-    /// Traduce un evento del motor, o devuelve null si la interfaz no lo muestra.
+    /// Translates an engine event, or returns null if the interface does not show it.
     /// </summary>
     /// <param name="excludedByUser">
-    /// Cuántos archivos dejó fuera la persona, que el resumen cuenta aparte de los del filtro.
+    /// How many files the person left out, which the summary counts separately from the filter's.
     /// </param>
     public static object? From(RunEvent progress, int excludedByUser) => progress switch
     {
@@ -120,14 +120,14 @@ internal static class RunEventWire
             failedMoves = e.Totals.FailedMoves
         },
 
-        // Las tandas, los reintentos y el turno caído son mecánica de la plataforma, no del recorrido.
+        // Batches, retries and the failed turn are platform mechanics, not part of the journey.
         _ => null
     };
 
-    /// <summary>La corrida terminó mal, y la interfaz muestra el patrón de error.</summary>
+    /// <summary>The run ended badly, and the interface shows the error pattern.</summary>
     public static object Failed(ErrorKind kind, string message) =>
         new { type = "runFailed", kind = kind.ToString(), message };
 
-    /// <summary>La persona detuvo la corrida.</summary>
+    /// <summary>The person stopped the run.</summary>
     public static object Cancelled() => new { type = "runCancelled" };
 }

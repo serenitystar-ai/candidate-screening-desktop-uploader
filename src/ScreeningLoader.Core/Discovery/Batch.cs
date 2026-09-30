@@ -1,7 +1,7 @@
 namespace ScreeningLoader.Core.Discovery;
 
 /// <summary>
-/// Un lote de archivos y su peso acumulado.
+/// A batch of files and their combined size.
 /// </summary>
 public sealed record Batch(IReadOnlyList<CvFile> Files)
 {

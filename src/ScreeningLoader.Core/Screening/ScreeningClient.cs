@@ -4,7 +4,7 @@ using ScreeningLoader.Core.Serenity;
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// Consultas al dataset a través del skill del plugin.
+/// Dataset queries through the plugin's skill.
 /// </summary>
 public sealed class ScreeningClient(ISerenityClient serenityClient, string datasetSkillCode) : IScreeningClient
 {
@@ -13,7 +13,7 @@ public sealed class ScreeningClient(ISerenityClient serenityClient, string datas
 
     public async Task<IReadOnlyList<JobOpening>> ListJobOpeningsAsync(CancellationToken ct)
     {
-        // Dos viajes porque el plugin acepta una sentencia por llamada, no porque los datos lo pidan.
+        // Two round trips because the plugin accepts one statement per call, not because the data calls for it.
         Task<DatasetTable> openings = SelectAsync(
             $"SELECT {OpeningColumns} FROM Jobopenings ORDER BY created_at DESC",
             ["Jobopenings"],
@@ -62,12 +62,12 @@ public sealed class ScreeningClient(ISerenityClient serenityClient, string datas
     }
 
     /// <summary>
-    /// Corre una sentencia de lectura y devuelve su tabla.
+    /// Runs a read statement and returns its table.
     /// </summary>
     private async Task<DatasetTable> SelectAsync(string sql, string[] tablesUsed, CancellationToken ct)
     {
-        // Una consulta sin coincidencias vuelve 200 con rows vacío, así que un 404 acá no es "no hay filas":
-        // es que el código de la skill no existe, y traducirlo a lista vacía lo escondería.
+        // A query with no matches comes back 200 with empty rows, so a 404 here is not "no rows":
+        // it means the skill code does not exist, and translating it to an empty list would hide that.
         JsonElement payload = await serenityClient.ExecuteSkillAsync(datasetSkillCode, new { sql, tablesUsed }, ct);
 
         return DatasetTable.From(payload);

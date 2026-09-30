@@ -4,25 +4,25 @@ using Microsoft.Web.WebView2.Core;
 namespace ScreeningLoader.Shell;
 
 /// <summary>
-/// Entrega al WebView el bundle de la interfaz embebido en el ejecutable.
+/// Serves the WebView the interface bundle embedded in the executable.
 /// </summary>
 internal sealed class WebAssets(CoreWebView2Environment environment)
 {
     private const string ResourcePrefix = "web/";
 
-    // Un host reservado por RFC 2606: la petición se atiende acá y nunca sale a la red.
+    // A host reserved by RFC 2606: the request is handled here and never reaches the network.
     private const string HostName = "screening-loader.invalid";
 
     private static readonly Assembly s_assembly = typeof(WebAssets).Assembly;
 
-    /// <summary>Origen desde el que se sirve la interfaz.</summary>
+    /// <summary>Origin the interface is served from.</summary>
     public static string Origin { get; } = $"https://{HostName}/";
 
-    /// <summary>Documento con el que arranca la ventana.</summary>
+    /// <summary>Document the window starts with.</summary>
     public static string EntryUrl { get; } = $"{Origin}index.html";
 
     /// <summary>
-    /// Responde con el recurso embebido que corresponde a la petición.
+    /// Responds with the embedded resource that matches the request.
     /// </summary>
     public void Serve(object? sender, CoreWebView2WebResourceRequestedEventArgs e)
     {

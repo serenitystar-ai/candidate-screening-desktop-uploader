@@ -5,7 +5,7 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Auth;
 
 /// <summary>
-/// Mantiene vigente el access token de la sesión.
+/// Keeps the session's access token valid.
 /// </summary>
 public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider)
 {
@@ -18,7 +18,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     private DateTimeOffset expiresAt;
 
     /// <summary>
-    /// Abre la sesión con las credenciales del usuario. La contraseña no se retiene.
+    /// Opens the session with the user's credentials. The password is not retained.
     /// </summary>
     public async Task LoginAsync(string email, string password, CancellationToken ct)
     {
@@ -36,7 +36,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     }
 
     /// <summary>
-    /// Devuelve un access token vigente, refrescándolo si está por vencer.
+    /// Returns a valid access token, refreshing it if it is about to expire.
     /// </summary>
     public async Task<string> GetAccessTokenAsync(CancellationToken ct)
     {
@@ -56,7 +56,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     }
 
     /// <summary>
-    /// Fuerza un refresco aunque el token vigente todavía no esté por vencer.
+    /// Forces a refresh even if the current token is not yet about to expire.
     /// </summary>
     public async Task<string> ForceRefreshAsync(CancellationToken ct)
     {
@@ -74,7 +74,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     }
 
     /// <summary>
-    /// Cierra la sesión. Los tokens sólo viven en memoria, así que olvidarlos es cerrarla del todo.
+    /// Closes the session. The tokens only live in memory, so forgetting them closes it completely.
     /// </summary>
     public async Task CloseAsync(CancellationToken ct)
     {
@@ -100,7 +100,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     {
         string refreshed = await authClient.RefreshAsync(session, ct);
 
-        // El refresh token no rota: el que devolvió el login sirve para toda la sesión.
+        // The refresh token does not rotate: the one the login returned is good for the whole session.
         Adopt(session with { AccessToken = refreshed });
 
         return refreshed;
@@ -113,7 +113,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
     }
 
     /// <summary>
-    /// Vencimiento que declara el propio token, o null si no se puede leer.
+    /// Expiry declared by the token itself, or null if it cannot be read.
     /// </summary>
     private static DateTimeOffset? ReadExpiry(string accessToken)
     {
@@ -124,7 +124,7 @@ public sealed class TokenStore(IAuthClient authClient, TimeProvider timeProvider
 
         try
         {
-            // Sin validar la firma: de este token sólo se lee cuándo vence, y validarlo es tarea del Hub.
+            // Signature not validated: only the expiry is read from this token, and validating it is the Hub's job.
             using JsonDocument payload = JsonDocument.Parse(Base64Url.DecodeFromChars(parts[1]));
 
             return payload.RootElement.TryGetProperty("exp", out JsonElement exp) && exp.TryGetInt64(out long seconds)

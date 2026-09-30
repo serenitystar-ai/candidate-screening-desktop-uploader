@@ -1,7 +1,7 @@
 @import "@repo/ui/styles/globals.css";
 @import "@repo/ui/styles/fonts.css";
 
-/* Tailwind descubre las clases desde este archivo, y la mitad de ellas vive en el vendor. */
+/* Tailwind discovers classes from this file, and half of them live in the vendor. */
 @source "./**/*.{ts,tsx}";
 
 @layer base {

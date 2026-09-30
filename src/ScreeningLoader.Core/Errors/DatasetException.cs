@@ -1,7 +1,7 @@
 namespace ScreeningLoader.Core.Errors;
 
 /// <summary>
-/// Fallo de una operación contra el dataset.
+/// Failure of an operation against the dataset.
 /// </summary>
 public sealed class DatasetException(
     ErrorKind kind,
@@ -10,6 +10,6 @@ public sealed class DatasetException(
     Exception? inner = null)
     : ScreeningLoaderException(kind, message, inner)
 {
-    /// <summary>Verbo de la sentencia que falló.</summary>
+    /// <summary>Verb of the statement that failed.</summary>
     public string Operation { get; } = operation;
 }

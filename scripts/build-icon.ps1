@@ -1,5 +1,5 @@
-# Dibuja el icono de la aplicacion y lo escribe como .ico multiresolucion.
-# Se corre a mano cuando el icono cambia; el .ico resultante se versiona.
+# Draws the application icon and writes it as a multi-resolution .ico.
+# Run by hand when the icon changes; the resulting .ico is committed.
 param(
     [string]$Destino = "$PSScriptRoot/../src/ScreeningLoader.Shell/app.ico",
     [string]$Preview
@@ -7,7 +7,7 @@ param(
 
 Add-Type -AssemblyName System.Drawing
 
-# El primario del design system, el mismo que usa el resto del tooling.
+# The design system's primary color, the same one the rest of the tooling uses.
 $Azul = [System.Drawing.Color]::FromArgb(0x48, 0x62, 0xFF)
 
 function New-RoundedPath([single]$x, [single]$y, [single]$w, [single]$h, [single]$r) {
@@ -29,12 +29,12 @@ function New-Icono([int]$S) {
   $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
   $g.Clear([System.Drawing.Color]::Transparent)
 
-  # Fondo: el azul de marca en una teja redondeada como las tarjetas del design system.
+  # Background: the brand blue on a rounded tile like the design system's cards.
   $fondo = New-RoundedPath 0 0 $S $S ($S * 0.225)
   $g.FillPath((New-Object System.Drawing.SolidBrush $Azul), $fondo)
   $fondo.Dispose()
 
-  # Por debajo de 40 px las dos hojas se funden en una mancha, así que ahí va una sola y más grande.
+  # Below 40 px the two sheets blur into a blob, so a single, larger one goes there instead.
   $apilado = $S -ge 40
 
   if ($apilado) {
@@ -57,7 +57,7 @@ function New-Icono([int]$S) {
   $g.FillPath((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::White)), $frente)
   $frente.Dispose()
 
-  # Renglones: a 16 px se convierten en barro, así que sólo aparecen cuando hay píxeles para ellos.
+  # Text lines: at 16 px they turn to mush, so they only appear when there are pixels for them.
   if ($S -ge 48) {
     $alto = [Math]::Max(1.0, $S * 0.045)
     $pincel = New-Object System.Drawing.SolidBrush $Azul
@@ -75,7 +75,7 @@ function New-Icono([int]$S) {
   return $bmp
 }
 
-# Los tamaños chicos van como DIB porque es lo que todo Windows sabe leer; los grandes como PNG.
+# Small sizes go as DIB because every Windows version can read it; large ones as PNG.
 function Get-DibBytes([System.Drawing.Bitmap]$bmp) {
   $S = $bmp.Width
   $ms = New-Object System.IO.MemoryStream
@@ -166,4 +166,4 @@ if ($Preview) {
 
 foreach ($bmp in $imagenes.Values) { $bmp.Dispose() }
 
-"escrito: $Destino ($((Get-Item $Destino).Length) bytes, $($payloads.Count) tamaños)"
+"written: $Destino ($((Get-Item $Destino).Length) bytes, $($payloads.Count) sizes)"

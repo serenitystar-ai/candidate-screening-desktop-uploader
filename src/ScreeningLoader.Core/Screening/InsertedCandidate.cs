@@ -1,7 +1,7 @@
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// Una fila insertada y el archivo que la produjo.
+/// An inserted row and the file that produced it.
 /// </summary>
 public sealed record InsertedCandidate(string Id, string CvFileName)
 {

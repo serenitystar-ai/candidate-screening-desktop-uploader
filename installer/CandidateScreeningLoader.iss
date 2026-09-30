@@ -1,10 +1,10 @@
-; Instalador por usuario, sin permisos de administrador.
-; Se compila con ISCC contra un publicado que ya exista; ver installer/README.md.
+; Per-user installer, without administrator permissions.
+; Compiled with ISCC against an existing publish output; see installer/README.md.
 
 #define Publicado SourcePath + "..\src\ScreeningLoader.Shell\bin\Release\net10.0-windows\win-x64\publish\ScreeningLoader.Shell.exe"
 
 #if !FileExists(Publicado)
-  #error Falta el ejecutable publicado. Correr antes: pnpm -C ui build && dotnet publish ...
+  #error The published executable is missing. Run first: pnpm -C ui build && dotnet publish ...
 #endif
 
 #define Nombre "Candidate Screening Loader"
@@ -12,7 +12,7 @@
 #define Editor "Serenity Star"
 
 [Setup]
-; No cambiar nunca: es lo que identifica a la aplicación instalada entre versiones.
+; Never change this: it is what identifies the installed application across versions.
 AppId={{8A6F2C41-3D5E-4B7A-9E10-6C2B4F8D1A93}
 AppName={#Nombre}
 AppVersion={#Version}
@@ -20,14 +20,14 @@ AppVerName={#Nombre} {#Version}
 AppPublisher={#Editor}
 VersionInfoVersion={#Version}
 
-; Por usuario: en %LOCALAPPDATA% no hace falta administrador ni que IT intervenga.
+; Per user: under %LOCALAPPDATA% no administrator or IT involvement is needed.
 PrivilegesRequired=lowest
 DefaultDirName={autopf}\CandidateScreeningLoader
 DefaultGroupName={#Nombre}
 DisableProgramGroupPage=yes
 DisableDirPage=yes
 
-; El ejecutable se lleva el runtime de .NET adentro, así que el comprimido pesa igual que él.
+; The executable carries the .NET runtime inside, so the compressed package weighs the same as it does.
 Compression=lzma2/max
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
@@ -63,8 +63,8 @@ Filename: "{app}\ScreeningLoader.Shell.exe"; Description: "{cm:LaunchProgram,{#N
 var
   Descarga: TDownloadWizardPage;
 
-{ El runtime evergreen se registra bajo WOW6432Node en las máquinas de 64 bits, y bajo HKCU
-  cuando alguien lo instaló sólo para su usuario. }
+{ The evergreen runtime registers under WOW6432Node on 64-bit machines, and under HKCU
+  when someone installed it only for their own user. }
 function Registrado(Raiz: Integer; Clave: String): Boolean;
 var
   Version: String;
@@ -96,8 +96,8 @@ begin
   if (CurPageID <> wpReady) or not FaltaWebView2 then
     Exit;
 
-  { Viene preinstalado en Windows 11 y en Windows 10 con Edge moderno; esto es la red de seguridad,
-    y necesita salida a internet en el momento de instalar. }
+  { It comes preinstalled on Windows 11 and on Windows 10 with modern Edge; this is the safety net,
+    and it needs internet access at install time. }
   Descarga.Clear;
   Descarga.Add('https://go.microsoft.com/fwlink/p/?LinkId=2124703', 'MicrosoftEdgeWebview2Setup.exe', '');
   Descarga.Show;

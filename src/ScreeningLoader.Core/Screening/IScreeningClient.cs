@@ -1,24 +1,24 @@
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// Las consultas al dataset que hace el motor.
+/// The dataset queries the engine makes.
 /// </summary>
 public interface IScreeningClient
 {
     /// <summary>
-    /// Devuelve las búsquedas laborales de la organización, cada una con su conteo de candidatos.
+    /// Returns the organization's job openings, each with its candidate count.
     /// </summary>
     Task<IReadOnlyList<JobOpening>> ListJobOpeningsAsync(CancellationToken ct);
 
     /// <summary>
-    /// Devuelve el archivo que produjo cada una de las filas indicadas.
+    /// Returns the file that produced each of the given rows.
     /// </summary>
     Task<IReadOnlyList<InsertedCandidate>> GetInsertedAsync(
         IReadOnlyList<string> ids,
         CancellationToken ct);
 
     /// <summary>
-    /// Devuelve las filas de una búsqueda que corresponden a alguno de los archivos indicados.
+    /// Returns the rows of a job opening that match any of the given files.
     /// </summary>
     Task<IReadOnlyList<InsertedCandidate>> GetInsertedByFileNameAsync(
         string jobOpeningId,

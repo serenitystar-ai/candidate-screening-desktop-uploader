@@ -24,7 +24,7 @@ Console.CancelKeyPress += (_, e) =>
 
 using ScreeningLoaderEngine engine = new(options, errorLog);
 
-// El historial sale de los registros en disco, así que no necesita sesión.
+// The history comes from the records on disk, so it needs no session.
 if (args.Contains(HistoryFlag))
 {
     foreach (RunRecord run in engine.ListRuns(20))
@@ -38,28 +38,28 @@ try
     Console.Write("Email: ");
     string email = Console.ReadLine() ?? string.Empty;
 
-    Console.Write("Contraseña: ");
+    Console.Write("Password: ");
     string password = ReadPasswordMasked();
 
     await engine.LoginAsync(email, password, cancellation.Token);
     await engine.ResolveAgentAsync(cancellation.Token);
 
     string datasetSkillCode = await engine.GetDatasetSkillCodeAsync(cancellation.Token);
-    Console.WriteLine($"Agente: {engine.AgentCode}. Dataset skill: {datasetSkillCode}");
+    Console.WriteLine($"Agent: {engine.AgentCode}. Dataset skill: {datasetSkillCode}");
 
     if (args.Contains(ProbeRefreshFlag))
     {
         await engine.RefreshSessionAsync(cancellation.Token);
 
         string afterRefresh = await engine.GetDatasetSkillCodeAsync(cancellation.Token);
-        Console.WriteLine($"Token renovado. Dataset skill: {afterRefresh}");
+        Console.WriteLine($"Token refreshed. Dataset skill: {afterRefresh}");
     }
 
     IReadOnlyList<JobOpening> openings = await engine.ListJobOpeningsAsync(cancellation.Token);
 
     if (openings.Count == 0)
     {
-        Console.WriteLine("La organización no tiene búsquedas laborales cargadas.");
+        Console.WriteLine("The organization has no job openings loaded.");
         return 0;
     }
 
@@ -70,26 +70,26 @@ try
 
     JobOpening selected = ChooseOpening(openings);
 
-    // La descripción se retiene entera: es lo único con lo que el agente puntúa.
+    // The description is kept whole: it is the only thing the agent scores against.
     Console.WriteLine(
-        $"Elegido: {selected.Title} · {selected.CandidateCount} candidatos · "
-        + $"JD de {selected.Description.Length} caracteres");
+        $"Chosen: {selected.Title} · {selected.CandidateCount} candidates · "
+        + $"JD of {selected.Description.Length} characters");
 
-    Console.Write("Carpeta de CVs > ");
+    Console.Write("CV folder > ");
     string folder = (Console.ReadLine() ?? string.Empty).Trim().Trim('"');
 
     DiscoveryResult discovery = await engine.DiscoverAsync(folder, cancellation.Token);
 
     Console.WriteLine();
-    Console.WriteLine($"{discovery.Accepted.Count} aceptados, {discovery.Rejected.Count} descartados");
+    Console.WriteLine($"{discovery.Accepted.Count} accepted, {discovery.Rejected.Count} rejected");
 
     foreach (RejectedFile rejected in discovery.Rejected)
         Console.WriteLine($"  - {rejected.FileName}: {DescribeRejection(rejected.Reason)}");
 
     foreach ((Batch batch, int number) in discovery.Batches.Select((b, i) => (b, i + 1)))
-        Console.WriteLine($"  lote {number}: {batch.Files.Count} archivos, {batch.TotalMegabytes:F1} MB");
+        Console.WriteLine($"  batch {number}: {batch.Files.Count} files, {batch.TotalMegabytes:F1} MB");
 
-    // Subir y analizar dejan datos en el Hub y filas en el dataset, así que no corren sin pedirlo.
+    // Uploading and analyzing leave data in the Hub and rows in the dataset, so they only run when asked.
     if (discovery.Batches.Count == 0)
         return 0;
 
@@ -103,7 +103,7 @@ try
             Report(progress);
 
         Console.WriteLine();
-        Console.WriteLine($"Resultados: {engine.ResultsUrl}");
+        Console.WriteLine($"Results: {engine.ResultsUrl}");
 
         return 0;
     }
@@ -112,12 +112,12 @@ try
         return 0;
 
     Console.WriteLine();
-    Console.WriteLine($"Subiendo el lote 1 · {first.Files.Count} archivos");
+    Console.WriteLine($"Uploading batch 1 · {first.Files.Count} files");
 
     UploadOutcome outcome = await engine.UploadBatchAsync(first, Report, cancellation.Token);
 
     Console.WriteLine();
-    Console.WriteLine($"{outcome.Ready.Count} listos, {outcome.Failed.Count} fallidos");
+    Console.WriteLine($"{outcome.Ready.Count} ready, {outcome.Failed.Count} failed");
 
     foreach (UploadedCv cv in outcome.Ready)
         Console.WriteLine($"  {cv.File.FileName} · vk={cv.VolatileKnowledgeId} · file={Describe(cv.FileId)}");
@@ -134,7 +134,7 @@ catch (ScreeningLoaderException ex)
 }
 catch (OperationCanceledException)
 {
-    Console.Error.WriteLine("Cancelado.");
+    Console.Error.WriteLine("Cancelled.");
     return 1;
 }
 
@@ -143,32 +143,32 @@ static void Report(RunEvent runEvent)
     switch (runEvent)
     {
         case FileUploading uploading:
-            Console.WriteLine($"  subiendo {uploading.FileName} · {uploading.SizeBytes / 1024.0:F0} KB");
+            Console.WriteLine($"  uploading {uploading.FileName} · {uploading.SizeBytes / 1024.0:F0} KB");
             break;
 
         case FileProcessing processing:
-            Console.WriteLine($"  procesando {processing.FileName}");
+            Console.WriteLine($"  processing {processing.FileName}");
             break;
 
         case FileUploaded uploaded:
-            Console.WriteLine($"  listo {uploaded.FileName}");
+            Console.WriteLine($"  ready {uploaded.FileName}");
             break;
 
         case FileFailed failed:
-            Console.WriteLine($"  falló {failed.FileName}: {failed.Reason}");
+            Console.WriteLine($"  failed {failed.FileName}: {failed.Reason}");
             break;
 
         case FileRegistered registered:
-            Console.WriteLine($"  registrado {registered.FileName}");
+            Console.WriteLine($"  registered {registered.FileName}");
             break;
 
         case BatchAnalyzing analyzing:
-            Console.WriteLine($"  analizando {analyzing.FileCount} CVs en un turno");
+            Console.WriteLine($"  analyzing {analyzing.FileCount} CVs in one turn");
             break;
 
         case BatchAnalyzeFailed failure:
-            Console.WriteLine($"  el turno falló: {failure.Reason}");
-            Console.WriteLine("  reconciliando contra el dataset lo que haya alcanzado a escribir");
+            Console.WriteLine($"  the turn failed: {failure.Reason}");
+            Console.WriteLine("  reconciling against the dataset whatever it managed to write");
             break;
 
         case AgentProgress progress:
@@ -176,46 +176,46 @@ static void Report(RunEvent runEvent)
             break;
 
         case RunStarted started:
-            Console.WriteLine($"Corrida: {started.FileCount} CVs en {started.BatchCount} lotes");
+            Console.WriteLine($"Run: {started.FileCount} CVs in {started.BatchCount} batches");
             break;
 
         case BatchStarted batch:
             Console.WriteLine();
-            Console.WriteLine($"Lote {batch.Number} de {batch.Of} · {batch.FileCount} archivos");
+            Console.WriteLine($"Batch {batch.Number} of {batch.Of} · {batch.FileCount} files");
             break;
 
         case RetryWaiting waiting:
             Console.WriteLine(
-                $"  reintento {waiting.Attempt} de {waiting.Operation} en {waiting.Delay.TotalSeconds:F0}s "
+                $"  retry {waiting.Attempt} of {waiting.Operation} in {waiting.Delay.TotalSeconds:F0}s "
                 + $"· {waiting.Reason}");
             break;
 
         case RunCompleted completed:
             Console.WriteLine();
             Console.WriteLine(
-                $"{completed.Totals.Processed} procesados · {completed.Totals.ToReview} en fallidos/ · "
-                + $"{completed.Totals.Rejected} descartados"
-                + (completed.Totals.FailedMoves > 0 ? $" · {completed.Totals.FailedMoves} sin mover" : ""));
+                $"{completed.Totals.Processed} processed · {completed.Totals.ToReview} in fallidos/ · "
+                + $"{completed.Totals.Rejected} rejected"
+                + (completed.Totals.FailedMoves > 0 ? $" · {completed.Totals.FailedMoves} not moved" : ""));
             break;
     }
 }
 
-static string Describe(Guid? fileId) => fileId is { } id ? id.ToString() : "sin id de descarga";
+static string Describe(Guid? fileId) => fileId is { } id ? id.ToString() : "no download id";
 
 static string DescribeOpening(JobOpening opening)
 {
-    string department = opening.Department.Length > 0 ? opening.Department : "sin área";
-    string candidates = opening.CandidateCount == 1 ? "1 candidato" : $"{opening.CandidateCount} candidatos";
+    string department = opening.Department.Length > 0 ? opening.Department : "no department";
+    string candidates = opening.CandidateCount == 1 ? "1 candidate" : $"{opening.CandidateCount} candidates";
 
     return $"{opening.Title} · {department} · {opening.Status} · {candidates}";
 }
 
 static string DescribeRejection(RejectionReason reason) => reason switch
 {
-    RejectionReason.UnsupportedType => "el agente no acepta ese tipo de archivo",
-    RejectionReason.Empty => "está vacío",
-    RejectionReason.TooLarge => "supera el tamaño máximo por archivo",
-    RejectionReason.ExceedsBatchBudget => "por sí solo no entra en un lote",
+    RejectionReason.UnsupportedType => "the agent does not accept this file type",
+    RejectionReason.Empty => "is empty",
+    RejectionReason.TooLarge => "exceeds the maximum size per file",
+    RejectionReason.ExceedsBatchBudget => "does not fit in a batch on its own",
     _ => reason.ToString()
 };
 
@@ -228,13 +228,13 @@ static JobOpening ChooseOpening(IReadOnlyList<JobOpening> openings)
         if (int.TryParse(Console.ReadLine(), out int choice) && choice >= 1 && choice <= openings.Count)
             return openings[choice - 1];
 
-        Console.WriteLine("No es una opción de la lista.");
+        Console.WriteLine("Not an option from the list.");
     }
 }
 
 static string ReadPasswordMasked()
 {
-    // Con la entrada redirigida no hay teclas que interceptar, y el host tiene que seguir siendo scripteable.
+    // With redirected input there are no keys to intercept, and the host has to stay scriptable.
     if (Console.IsInputRedirected)
         return Console.ReadLine() ?? string.Empty;
 
@@ -270,8 +270,8 @@ static string ReadPasswordMasked()
 static string DescribeRun(RunRecord run)
 {
     string totals = run.Totals is { } t
-        ? $"{t.Processed} procesados · {t.ToReview} fallidos · {t.Rejected} descartados"
-        : "sin terminar";
+        ? $"{t.Processed} processed · {t.ToReview} failed · {t.Rejected} rejected"
+        : "unfinished";
 
     string detail = string.Concat(
         run.ToReview.Select(f => $"{Environment.NewLine}    - {f.FileName}: {f.Reason}"));

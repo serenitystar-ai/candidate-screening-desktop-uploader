@@ -1,9 +1,9 @@
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Un agente publicado a Nexus, con la app que sirve su canal.
+/// An agent published to Nexus, with the app its channel serves.
 /// </summary>
 /// <param name="App">
-/// Null en los agentes sin canal de Nexus activo, que son la mayoría.
+/// Null for agents without an active Nexus channel, which are most of them.
 /// </param>
 public sealed record NexusAgent(string Code, string Name, string? App);

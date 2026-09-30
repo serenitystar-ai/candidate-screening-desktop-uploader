@@ -22,7 +22,7 @@ export function OpeningsScreen({ openings, onSelect }: OpeningsScreenProps) {
 
   return (
     <div className="minimal-scroll h-full overflow-y-auto px-6 py-6">
-      {/* La ventana no baja de 960 px de ancho, así que las tres columnas caben siempre. */}
+      {/* The window never goes below 960 px wide, so the three columns always fit. */}
       <div className="grid grid-cols-3 gap-4">
         {openings.map((opening) => (
           <Card

@@ -5,10 +5,10 @@ using ScreeningLoader.Core.Run;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Acuse de una ejecución: los identificadores insertados y los archivos que fallaron.
+/// Acknowledgment of an execution: the inserted identifiers and the files that failed.
 /// </summary>
 /// <param name="UnreadableIds">
-/// Cuántos identificadores del recibo no eran un GUID. El agente los escribe, y a veces los escribe mal.
+/// How many identifiers in the receipt were not a GUID. The agent writes them, and sometimes writes them wrong.
 /// </param>
 public sealed record AnalyzeReceipt(
     IReadOnlyList<string> InsertedIds,
@@ -18,13 +18,13 @@ public sealed record AnalyzeReceipt(
     public static AnalyzeReceipt Empty { get; } = new([], []);
 
     /// <summary>
-    /// Lee el recibo del turno. Sólo el sobre de error del agente aborta.
+    /// Reads the turn's receipt. Only the agent's error envelope aborts.
     /// </summary>
     public static AnalyzeReceipt Parse(string content)
     {
-        // Tolerante al revés que el resto del motor: para cuando esto corre, el agente ya escribió filas y
-        // esas filas son candidatos reales. Un recibo ilegible no puede descartar una corrida cuyos
-        // resultados están en la base; la reconciliación contra el dataset es la que manda.
+        // Lenient, unlike the rest of the engine: by the time this runs, the agent has already written rows and
+        // those rows are real candidates. An unreadable receipt cannot discard a run whose
+        // results are in the database; the reconciliation against the dataset is what decides.
         if (!TryParseRoot(content, out JsonElement root))
             return Empty;
 
@@ -58,7 +58,7 @@ public sealed record AnalyzeReceipt(
     }
 
     /// <summary>
-    /// Quita la cerca de código que el modelo a veces agrega pese a tenerlo prohibido.
+    /// Strips the code fence the model sometimes adds despite being told not to.
     /// </summary>
     private static string StripFences(string content)
     {
@@ -80,10 +80,10 @@ public sealed record AnalyzeReceipt(
         && error.TryGetProperty("message", out JsonElement message)
         && message.ValueKind is JsonValueKind.String
             ? message.GetString()!
-            : "El agente devolvió un sobre de error sin detalle.";
+            : "The agent returned an error envelope without detail.";
 
     /// <summary>
-    /// Los identificadores que el agente dice haber escrito, quedándose sólo con los que son un GUID.
+    /// The identifiers the agent says it wrote, keeping only the ones that are a GUID.
     /// </summary>
     private static (IReadOnlyList<string> Ids, int Unreadable) ReadInsertedIds(JsonElement root)
     {
@@ -107,8 +107,8 @@ public sealed record AnalyzeReceipt(
                 continue;
             }
 
-            // Un id que no es un GUID no puede llegar a una sentencia: el helper lo rechazaría y se
-            // llevaría puesta la corrida. Se cuenta como ilegible y la fila se confirma por nombre.
+            // An id that is not a GUID cannot reach a statement: the helper would reject it and take
+            // the run down with it. It counts as unreadable and the row is confirmed by name.
             if (Guid.TryParse(value, out _))
                 ids.Add(value);
             else

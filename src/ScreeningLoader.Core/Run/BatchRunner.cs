@@ -11,7 +11,7 @@ using ScreeningLoader.Core.Serenity;
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Máquina de estados de una corrida.
+/// State machine of a run.
 /// </summary>
 public sealed class BatchRunner(
     ISerenityClient serenityClient,
@@ -21,7 +21,7 @@ public sealed class BatchRunner(
     ScreeningLoaderOptions options)
 {
     /// <summary>
-    /// Procesa todos los lotes de una corrida y emite su progreso.
+    /// Processes every batch of a run and emits its progress.
     /// </summary>
     public async IAsyncEnumerable<RunEvent> RunAsync(
         JobOpening opening,
@@ -39,13 +39,13 @@ public sealed class BatchRunner(
 
         foreach ((Batch batch, int number) in discovery.Batches.Select((b, i) => (b, i + 1)))
         {
-            // Antes del lote y no ante un 401: un token que vence en mitad de un turno de varios minutos
-            // tira abajo trabajo ya pagado.
+            // Before the batch and not on a 401: a token that expires halfway through a multi-minute turn
+            // throws away work already paid for.
             await tokenStore.GetAccessTokenAsync(ct);
 
             yield return new BatchStarted(number, discovery.Batches.Count, batch.Files.Count);
 
-            // Los lotes van uno detrás de otro: el dataset es SQLite y admite un solo escritor.
+            // Batches run one after another: the dataset is SQLite and allows a single writer.
             await foreach (RunEvent progress in RunBatchAsync(opening, batch, number, sourceFolder, audit, ct))
             {
                 if (progress is BatchFinished finished)
@@ -70,7 +70,7 @@ public sealed class BatchRunner(
     }
 
     /// <summary>
-    /// Procesa un lote entero: sube, analiza, reconcilia contra el dataset y reparte los archivos.
+    /// Processes a whole batch: uploads, analyzes, reconciles against the dataset and sorts the files.
     /// </summary>
     public async Task<BatchResult> RunBatchAsync(
         JobOpening opening,
@@ -90,8 +90,8 @@ public sealed class BatchRunner(
 
             try
             {
-                // El lote se reintenta con los mismos ids: expiran por tiempo, no por uso, así que un 429
-                // en la ejecución no cuesta volver a subir nada.
+                // The batch is retried with the same ids: they expire by time, not by use, so a 429
+                // on the execution does not cost re-uploading anything.
                 receipt = await retryPolicy.ExecuteAsync(
                     "analyze",
                     token => serenityClient.AnalyzeAsync(opening, uploaded.Ready, emit, token),
@@ -102,8 +102,8 @@ public sealed class BatchRunner(
             }
             catch (ScreeningLoaderException ex) when (ex.Kind is not ErrorKind.Fatal)
             {
-                // Un turno que muere a la mitad puede haber escrito filas reales, y esas filas son
-                // candidatos. Se reconcilia igual: descartarlas archivaría mal y duplicaría después.
+                // A turn that dies halfway may have written real rows, and those rows are
+                // candidates. It is reconciled anyway: discarding them would archive wrongly and duplicate later.
                 emit(new BatchAnalyzeFailed(ex.Message));
             }
         }
@@ -121,8 +121,8 @@ public sealed class BatchRunner(
             inserted,
             [.. receipt.Failed, .. uploaded.Failed]);
 
-        // Un CV que el agente rechazó, o cuya fila el dataset no confirma, recién se sabe acá. Sin este
-        // aviso el host sólo ve el total y la persona no se entera de qué se cayó ni por qué.
+        // A CV the agent rejected, or whose row the dataset does not confirm, is only known here. Without this
+        // notice the host only sees the total and the user never learns what dropped out or why.
         HashSet<string> alreadyReported = [.. uploaded.Failed.Select(f => f.FileName)];
 
         foreach (FailedCv failure in outcome.ToReview.Where(f => !alreadyReported.Contains(f.FileName)))
@@ -130,8 +130,8 @@ public sealed class BatchRunner(
 
         ArchiveResult archive = new FileArchiver(options).Archive(outcome, folder);
 
-        // Un archivo subido todavía no es un candidato: recién con la fila confirmada y el archivo movido
-        // el host puede darlo por cerrado.
+        // An uploaded file is not yet a candidate: only once the row is confirmed and the file moved
+        // can the host consider it done.
         foreach (CvFile file in outcome.Processed)
             emit(new FileRegistered(file.FileName));
 
@@ -139,7 +139,7 @@ public sealed class BatchRunner(
     }
 
     /// <summary>
-    /// Sube en paralelo acotado los archivos de un lote y devuelve los que quedaron listos.
+    /// Uploads a batch's files with bounded parallelism and returns the ones that ended up ready.
     /// </summary>
     public async Task<UploadOutcome> UploadBatchAsync(Batch batch, Action<RunEvent> emit, CancellationToken ct)
     {
@@ -170,7 +170,7 @@ public sealed class BatchRunner(
                 }
             });
 
-        // El orden del lote es el de la carpeta; las subidas concurrentes lo pierden y hay que recuperarlo.
+        // The batch order is the folder's; concurrent uploads lose it and it has to be restored.
         Dictionary<string, int> position = batch.Files
             .Select((file, index) => (file.Path, index))
             .ToDictionary(entry => entry.Path, entry => entry.index);
@@ -181,7 +181,7 @@ public sealed class BatchRunner(
     }
 
     /// <summary>
-    /// Corre un lote empujando sus eventos a un stream que el host consume.
+    /// Runs a batch, pushing its events into a stream the host consumes.
     /// </summary>
     private async IAsyncEnumerable<RunEvent> RunBatchAsync(
         JobOpening opening,
@@ -191,7 +191,7 @@ public sealed class BatchRunner(
         AuditLog audit,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        // Las subidas y el turno reportan por callback y el host consume un stream: el canal es la costura.
+        // Uploads and the turn report through a callback and the host consumes a stream: the channel is the seam.
         Channel<RunEvent> channel = Channel.CreateUnbounded<RunEvent>(
             new UnboundedChannelOptions { SingleReader = true });
 
@@ -234,7 +234,7 @@ public sealed class BatchRunner(
     }
 
     /// <summary>
-    /// El mapeo archivo ↔ fila, que sale del dataset y nunca de contar entradas del recibo.
+    /// The file ↔ row mapping, which comes from the dataset and never from counting receipt entries.
     /// </summary>
     private async Task<IReadOnlyList<InsertedCandidate>> ResolveInsertedAsync(
         JobOpening opening,
@@ -249,23 +249,23 @@ public sealed class BatchRunner(
         if (receipt.InsertedIds.Count > 0)
         {
             confirmed.AddRange(await retryPolicy.ExecuteAsync(
-                "reconciliar",
+                "reconcile",
                 token => screeningClient.GetInsertedAsync(receipt.InsertedIds, token),
                 emit,
                 ct));
         }
 
-        // Se completa por nombre en dos casos: cuando el turno no llegó a acusar, y cuando acusó con algún
-        // id que no era un GUID. Ninguna fila escrita puede quedar sin confirmar por un recibo mal escrito.
+        // Filled in by name in two cases: when the turn never acknowledged, and when it acknowledged with some
+        // id that was not a GUID. No written row may go unconfirmed because of a badly written receipt.
         bool incomplete = !turnCompleted || receipt.UnreadableIds > 0;
 
         if (!incomplete || uploaded.Ready.Count == 0)
             return confirmed;
 
-        // Menos preciso que por id —dos corridas del mismo nombre sobre la misma búsqueda se confunden—
-        // pero acotado a este lote, y es lo único disponible.
+        // Less precise than by id —two runs with the same name on the same job opening get mixed up—
+        // but limited to this batch, and it is the only thing available.
         IReadOnlyList<InsertedCandidate> byName = await retryPolicy.ExecuteAsync(
-            "reconciliar por nombre",
+            "reconcile by name",
             token => screeningClient.GetInsertedByFileNameAsync(
                 opening.Id,
                 [.. uploaded.Ready.Select(cv => cv.File.FileName)],
@@ -281,7 +281,7 @@ public sealed class BatchRunner(
     }
 
     /// <summary>
-    /// Las subidas corren en paralelo, así que el host no debería tener que sincronizar su propio emit.
+    /// Uploads run in parallel, so the host should not have to synchronize its own emit.
     /// </summary>
     private static Action<RunEvent> Synchronized(Action<RunEvent> emit)
     {

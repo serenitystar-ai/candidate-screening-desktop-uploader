@@ -1,16 +1,16 @@
 namespace ScreeningLoader.Core.Errors;
 
 /// <summary>
-/// Cómo reacciona la corrida ante un error.
+/// How the run reacts to an error.
 /// </summary>
 public enum ErrorKind
 {
-    /// <summary>Se resuelve esperando; se reintenta con backoff.</summary>
+    /// <summary>Resolved by waiting; retried with backoff.</summary>
     Transient,
 
-    /// <summary>Afecta a un solo archivo; va a fallidos y la corrida sigue.</summary>
+    /// <summary>Affects a single file; it goes to fallidos and the run continues.</summary>
     File,
 
-    /// <summary>La corrida no puede continuar.</summary>
+    /// <summary>The run cannot continue.</summary>
     Fatal
 }

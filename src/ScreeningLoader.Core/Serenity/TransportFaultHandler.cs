@@ -3,16 +3,16 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Marcas que el motor pone en un pedido para cambiar cómo se lo trata en el transporte.
+/// Flags the engine sets on a request to change how the transport treats it.
 /// </summary>
 internal static class RequestOptions
 {
-    /// <summary>Pedido cuya respuesta se consume por streaming y no admite un tope por pedido.</summary>
+    /// <summary>A request whose response is consumed by streaming and does not allow a per-request cap.</summary>
     public static readonly HttpRequestOptionsKey<bool> LongRunning = new("screeningLoader.longRunning");
 }
 
 /// <summary>
-/// Aplica el tope por pedido y traduce los fallos de transporte a la taxonomía del motor.
+/// Applies the per-request cap and translates transport failures to the engine's taxonomy.
 /// </summary>
 internal sealed class TransportFaultHandler(TimeSpan requestTimeout)
     : DelegatingHandler(new HttpClientHandler())
@@ -21,8 +21,8 @@ internal sealed class TransportFaultHandler(TimeSpan requestTimeout)
         HttpRequestMessage request,
         CancellationToken ct)
     {
-        // El HttpClient va sin timeout propio: el suyo cubre también la lectura del cuerpo, y cortaría un
-        // turno por streaming a mitad de camino. El tope se pone acá, y una ejecución larga queda exenta.
+        // The HttpClient has no timeout of its own: its timeout also covers reading the body, and would cut off a
+        // streaming turn midway. The cap is set here, and a long execution is exempt.
         CancellationTokenSource? attempt = null;
 
         try

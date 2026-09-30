@@ -4,7 +4,7 @@ using System.Text;
 namespace ScreeningLoader.Core.Errors;
 
 /// <summary>
-/// Registro de diagnóstico de la corrida.
+/// Diagnostic log of the run.
 /// </summary>
 public sealed class ErrorLog(string logDirectory)
 {
@@ -15,7 +15,7 @@ public sealed class ErrorLog(string logDirectory)
     private readonly Lock gate = new();
 
     /// <summary>
-    /// Carpeta donde el motor deja sus logs, deliberadamente lejos de la carpeta de CVs.
+    /// Folder where the engine writes its logs, deliberately away from the CV folder.
     /// </summary>
     public static string DefaultDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -23,13 +23,13 @@ public sealed class ErrorLog(string logDirectory)
         "logs");
 
     /// <summary>
-    /// Registra el fallo de una operación.
+    /// Logs the failure of an operation.
     /// </summary>
     public void Write(string operation, Exception ex) =>
         Append($"{operation} · {ex.GetType().Name} · {Describe(ex)}");
 
     /// <summary>
-    /// Registra una línea de diagnóstico.
+    /// Logs a diagnostic line.
     /// </summary>
     public void Write(string message) => Append(message);
 
@@ -47,7 +47,7 @@ public sealed class ErrorLog(string logDirectory)
         }
         catch (Exception)
         {
-            // Un log que no se puede escribir no puede tirar abajo la corrida.
+            // A log that cannot be written must not bring down the run.
         }
     }
 
@@ -55,11 +55,11 @@ public sealed class ErrorLog(string logDirectory)
         Path.Combine(logDirectory, $"screening-loader-{DateTime.UtcNow:yyyy-MM-dd}.log");
 
     /// <summary>
-    /// Describe la excepción sin volcar contenido que pueda traer datos de un candidato.
+    /// Describes the exception without dumping content that could carry a candidate's data.
     /// </summary>
     private static string Describe(Exception ex) => ex switch
     {
-        // El mensaje de un fallo del dataset arrastra la sentencia completa, con la fila adentro.
+        // The message of a dataset failure carries the full statement, with the row inside it.
         DatasetException dataset => $"dataset {dataset.Operation} status={Format(dataset.StatusCode)}",
         ScreeningLoaderException loader => $"{loader.Kind} status={Format(loader.StatusCode)} · {Sanitize(loader.Message)}",
         HttpRequestException http => $"http status={Format(http.StatusCode)}",
@@ -70,7 +70,7 @@ public sealed class ErrorLog(string logDirectory)
         status is null ? "-" : ((int)status).ToString();
 
     /// <summary>
-    /// Deja el mensaje en una sola línea y acotado, para que una entrada siga siendo una entrada.
+    /// Keeps the message on a single line and bounded, so that one entry stays one entry.
     /// </summary>
     private static string Sanitize(string message)
     {

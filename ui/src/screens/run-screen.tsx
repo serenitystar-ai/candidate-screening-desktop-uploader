@@ -128,7 +128,7 @@ interface ConfirmStopProps {
 }
 
 /**
- * La confirmación de detener, en un solo paso y diciendo lo incómodo.
+ * The stop confirmation, in a single step and stating the uncomfortable part.
  */
 export function ConfirmStop({ onConfirm, onDismiss, confirmLabel }: ConfirmStopProps) {
   return (
@@ -151,8 +151,8 @@ export function ConfirmStop({ onConfirm, onDismiss, confirmLabel }: ConfirmStopP
 }
 
 function ActivityRow({ file }: { file: FileRow }) {
-  // Todo el grupo está en el turno, así que lo que distingue por dónde va el agente es el nombre, no la
-  // etiqueta. Una vez marcado no se apaga: la banda resaltada dice qué quedó atrás.
+  // The whole group is in the turn, so what shows how far along the agent is is the name, not the
+  // label. Once marked it never clears: the highlighted band says what was left behind.
   const highlighted = file.named === true || file.status === "procesado";
 
   return (

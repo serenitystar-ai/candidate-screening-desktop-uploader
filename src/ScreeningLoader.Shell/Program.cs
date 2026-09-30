@@ -10,7 +10,7 @@ internal static class Program
     {
         ApplicationConfiguration.Initialize();
 
-        // Lo único visible del marco es la barra de título, y en claro sobre una interfaz oscura canta.
+        // The title bar is the only visible part of the frame, and a light one over a dark interface stands out.
 #pragma warning disable WFO5001
         Application.SetColorMode(SystemColorMode.System);
 #pragma warning restore WFO5001

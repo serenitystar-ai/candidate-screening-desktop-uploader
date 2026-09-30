@@ -3,12 +3,12 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// Construye los literales SQL que el motor envía al dataset.
+/// Builds the SQL literals the engine sends to the dataset.
 /// </summary>
 internal static class Sql
 {
     /// <summary>
-    /// Devuelve un GUID como literal, o lanza si el valor no es un GUID.
+    /// Returns a GUID as a literal, or throws if the value is not a GUID.
     /// </summary>
     public static string Id(string value)
     {
@@ -19,7 +19,7 @@ internal static class Sql
     }
 
     /// <summary>
-    /// Devuelve una lista de GUIDs como literal para una cláusula IN.
+    /// Returns a list of GUIDs as a literal for an IN clause.
     /// </summary>
     public static string IdList(IEnumerable<string> values)
     {
@@ -32,12 +32,12 @@ internal static class Sql
     }
 
     /// <summary>
-    /// Devuelve un texto de una sola línea como literal.
+    /// Returns a single-line text as a literal.
     /// </summary>
     public static string Text(string value)
     {
-        // La barra invertida se saca en vez de duplicarse: duplicarla es correcto en MySQL y guarda un par
-        // literal en Postgres, y no sabemos qué motor hay detrás del plugin. Sacarla es seguro en todos.
+        // The backslash is removed instead of doubled: doubling it is correct in MySQL but stores a literal
+        // pair in Postgres, and we don't know which engine is behind the plugin. Removing it is safe in all.
         string cleaned = new(value.Where(c => c is not '\\' && !char.IsControl(c)).ToArray());
 
         if (cleaned.Length > MaxTextLength)
@@ -47,7 +47,7 @@ internal static class Sql
     }
 
     /// <summary>
-    /// Devuelve una lista de textos como literal para una cláusula IN.
+    /// Returns a list of texts as a literal for an IN clause.
     /// </summary>
     public static string TextList(IEnumerable<string> values)
     {

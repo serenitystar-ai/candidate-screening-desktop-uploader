@@ -6,41 +6,41 @@ using ScreeningLoader.Core.Screening;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Superficie del AI Hub que consume el motor.
+/// The AI Hub surface the engine consumes.
 /// </summary>
 public interface ISerenityClient
 {
     /// <summary>
-    /// Ejecuta una skill del agente.
+    /// Executes one of the agent's skills.
     /// </summary>
     /// <returns>
-    /// El contenido estructurado de la respuesta, o un elemento <c>Undefined</c> cuando la skill
-    /// devolvió algo que no es JSON.
+    /// The structured content of the response, or an <c>Undefined</c> element when the skill
+    /// returned something that is not JSON.
     /// </returns>
     Task<JsonElement> ExecuteSkillAsync(string skillCode, object? body, CancellationToken ct);
 
     /// <summary>
-    /// Devuelve los agentes publicados a Nexus, para encontrar el que sirve la app.
+    /// Returns the agents published to Nexus, to find the one that serves the app.
     /// </summary>
     Task<IReadOnlyList<NexusAgent>> GetNexusAgentsAsync(CancellationToken ct);
 
     /// <summary>
-    /// Devuelve el código de la skill del dataset que publica el agente.
+    /// Returns the code of the dataset skill the agent publishes.
     /// </summary>
     Task<string> GetDatasetSkillCodeAsync(CancellationToken ct);
 
     /// <summary>
-    /// Devuelve los tipos de archivo que el agente acepta como volatile knowledge.
+    /// Returns the file types the agent accepts as volatile knowledge.
     /// </summary>
     Task<IReadOnlyList<string>> GetAcceptedMimeTypesAsync(CancellationToken ct);
 
     /// <summary>
-    /// Sube un archivo y espera a que el AI Hub termine de procesarlo.
+    /// Uploads a file and waits for the AI Hub to finish processing it.
     /// </summary>
     Task<VolatileKnowledgeRecord> UploadAndAwaitAsync(CvFile file, Action<RunEvent> emit, CancellationToken ct);
 
     /// <summary>
-    /// Analiza los CVs de un lote en un turno del agente y devuelve su recibo.
+    /// Analyzes a batch's CVs in one agent turn and returns its receipt.
     /// </summary>
     Task<AnalyzeReceipt> AnalyzeAsync(
         JobOpening opening,

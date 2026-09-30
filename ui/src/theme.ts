@@ -1,7 +1,7 @@
 const DarkClass = "serenity-dark";
 
 /**
- * Sigue el tema del sistema, que es lo que trae el WebView desde Windows.
+ * Follows the system theme, which is what the WebView picks up from Windows.
  */
 export function followSystemTheme(): void {
   const dark = window.matchMedia("(prefers-color-scheme: dark)");

@@ -6,7 +6,7 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Shell;
 
 /// <summary>
-/// Ventana de la aplicación.
+/// The application window.
 /// </summary>
 internal sealed class ShellForm : Form
 {
@@ -44,7 +44,7 @@ internal sealed class ShellForm : Form
         {
             errorLog.Write("webview-start", ex);
 
-            // Sin WebView no hay dónde mostrar el error con la interfaz de la aplicación.
+            // Without the WebView there is nowhere to show the error in the application's interface.
             MessageBox.Show(
                 "No se ha podido iniciar la ventana. Comprueba que el runtime de WebView2 está instalado.",
                 Text,
@@ -57,8 +57,8 @@ internal sealed class ShellForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // Cerrar en mitad de un análisis deja CV escritos y sin archivar, así que pasa por la misma
-        // confirmación que el botón de detener, escrita en la interfaz y no en un diálogo del sistema.
+        // Closing mid-analysis leaves CVs written but not archived, so it goes through the same
+        // confirmation as the stop button, written in the interface rather than in a system dialog.
         if (!closeConfirmed && bridge is { IsRunning: true })
         {
             e.Cancel = true;
@@ -90,7 +90,7 @@ internal sealed class ShellForm : Form
 
         string entry = devServer ?? WebAssets.EntryUrl;
 
-        // La interfaz no navega fuera de sí misma; lo que lo intente es un enlace que no debería estar ahí.
+        // The interface never navigates away from itself; anything that tries is a link that should not be there.
         core.NavigationStarting += (_, navigation) =>
             navigation.Cancel = !navigation.Uri.StartsWith(entry, StringComparison.OrdinalIgnoreCase)
                 && !navigation.Uri.StartsWith(WebAssets.Origin, StringComparison.OrdinalIgnoreCase);
@@ -108,7 +108,7 @@ internal sealed class ShellForm : Form
     }
 
     /// <summary>
-    /// El icono embebido, que trae todos los tamaños; extraerlo del ejecutable devolvería sólo el de 32.
+    /// The embedded icon, with every size; extracting it from the executable would return only the 32 px one.
     /// </summary>
     private static Icon? LoadIcon()
     {
@@ -118,7 +118,7 @@ internal sealed class ShellForm : Form
     }
 
     /// <summary>
-    /// Carpeta del perfil del WebView, fuera del directorio de instalación, que puede ser de sólo lectura.
+    /// The WebView profile folder, outside the install directory, which may be read-only.
     /// </summary>
     private static string UserDataFolder() => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

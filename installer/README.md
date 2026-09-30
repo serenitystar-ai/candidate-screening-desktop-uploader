@@ -1,10 +1,10 @@
-# Instalador
+# Installer
 
-`CandidateScreeningLoaderSetup.exe`, construido con [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+`CandidateScreeningLoaderSetup.exe`, built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
-## Construirlo
+## Building it
 
-Tres pasos, en orden. El instalador empaqueta un publicado que ya tiene que existir: no lo construye él.
+Three steps, in order. The installer packages a published build that must already exist: it doesn't build it.
 
 ```powershell
 pnpm -C ui build
@@ -12,36 +12,37 @@ dotnet publish src/ScreeningLoader.Shell -c Release -r win-x64 --self-contained 
 & "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" installer\CandidateScreeningLoader.iss
 ```
 
-Sale en `installer/Output/`, que no se versiona. Si falta el publicado, el compilador aborta con un mensaje
-que lo dice en vez de generar un instalador vacío.
+It's written to `installer/Output/`, which isn't versioned. If the published build is missing, the compiler
+aborts with a message saying so instead of producing an empty installer.
 
-La última línea es de PowerShell. En `cmd`, donde `&` y `$env:` no existen:
+The last line is PowerShell. In `cmd`, where `&` and `$env:` don't exist:
 
 ```bat
 "%LOCALAPPDATA%\Programs\Inno Setup 6\ISCC.exe" installer\CandidateScreeningLoader.iss
 ```
 
-Inno Setup se instala con `winget install JRSoftware.InnoSetup`. Queda en `%LOCALAPPDATA%\Programs` cuando se
-instala por usuario y en `Archivos de programa (x86)` cuando se instala para toda la máquina; los comandos de
-arriba asumen lo primero.
+Inno Setup is installed with `winget install JRSoftware.InnoSetup`. It ends up in `%LOCALAPPDATA%\Programs`
+when installed per user and in `Program Files (x86)` when installed for the whole machine; the commands above
+assume the former.
 
-**La versión sale del ejecutable**, que la toma de `<Version>` en `ScreeningLoader.Shell.csproj`. Se sube ahí
-y no acá.
+**The version comes from the executable**, which takes it from `<Version>` in `ScreeningLoader.Shell.csproj`.
+Bump it there, not here.
 
-## Qué hace
+## What it does
 
-- Instala **por usuario**, en `%LOCALAPPDATA%\Programs\CandidateScreeningLoader`. Sin permisos de
-  administrador y sin que IT intervenga.
-- Deja el acceso directo en el menú Inicio y, si se acepta la casilla, en el escritorio.
-- Registra la entrada de desinstalación en Programas y características.
-- **Verifica el runtime de WebView2 y lo descarga si falta.** Viene preinstalado en Windows 11 y en Windows 10
-  con Edge moderno, así que esa rama casi nunca se dispara; cuando lo hace necesita salida a internet.
+- Installs **per user**, in `%LOCALAPPDATA%\Programs\CandidateScreeningLoader`. No administrator rights and no
+  IT involvement.
+- Adds the shortcut to the Start menu and, if the checkbox is accepted, to the desktop.
+- Registers the uninstall entry in Programs and Features.
+- **Checks for the WebView2 runtime and downloads it if missing.** It comes preinstalled on Windows 11 and on
+  Windows 10 with a modern Edge, so that branch almost never runs; when it does, it needs internet access.
 
-## Qué no hace
+## What it doesn't do
 
-- **No está firmado.** Si el instalador llega por correo, Teams o una descarga, Windows le pone la Mark of the
-  Web y SmartScreen muestra *"Windows protegió su PC"*. Por un share de red interno o un pendrive no pasa.
-- **No borra los datos locales al desinstalar.** Los registros de auditoría y las preferencias viven en
-  `%LOCALAPPDATA%\CandidateScreeningLoader` y se quedan ahí: son de quien usa la aplicación, no de la
-  aplicación.
-- **Sólo x64.** Una máquina ARM64 lo correría emulado.
+- **It isn't signed.** If the installer arrives by email, Teams or a download, Windows adds the Mark of the Web
+  and SmartScreen shows *"Windows protected your PC"*. Through an internal network share or a USB drive it
+  doesn't happen.
+- **It doesn't delete local data on uninstall.** Audit logs and preferences live in
+  `%LOCALAPPDATA%\CandidateScreeningLoader` and stay there: they belong to whoever uses the application, not to
+  the application.
+- **x64 only.** An ARM64 machine would run it emulated.

@@ -7,7 +7,7 @@ using ScreeningLoader.Core.Serenity;
 namespace ScreeningLoader.Core.Auth;
 
 /// <summary>
-/// Login y refresh contra el AI Hub.
+/// Login and refresh against the AI Hub.
 /// </summary>
 public sealed class AuthClient(HttpClient httpClient) : IAuthClient
 {
@@ -21,7 +21,7 @@ public sealed class AuthClient(HttpClient httpClient) : IAuthClient
             new LoginReq(email, password, RememberMe: false),
             ct);
 
-        // Ninguno de los desenlaces del login se arregla reintentando.
+        // None of the login's failure outcomes is fixed by retrying.
         if (!response.IsSuccessStatusCode)
             throw await FatalAsync(response, ct);
 
@@ -44,13 +44,13 @@ public sealed class AuthClient(HttpClient httpClient) : IAuthClient
 
         using HttpRequestMessage request = new(HttpMethod.Post, Routes.Refresh);
 
-        // El endpoint liga los dos tokens por header; un body JSON se ignora entero.
+        // The endpoint binds both tokens from headers; a JSON body is ignored entirely.
         request.Headers.Add(AccessTokenHeader, session.AccessToken);
         request.Headers.Add(RefreshTokenHeader, session.RefreshToken);
 
         using HttpResponseMessage response = await httpClient.SendAsync(request, ct);
 
-        // La acción de refresh no atrapa sus propios errores, así que el estado no clasifica el fallo.
+        // The refresh action does not catch its own errors, so the status code does not classify the failure.
         if (!response.IsSuccessStatusCode)
             throw await FatalAsync(response, ct);
 
@@ -62,13 +62,13 @@ public sealed class AuthClient(HttpClient httpClient) : IAuthClient
     }
 
     /// <summary>
-    /// Lee el JWT devuelto, venga como string JSON o como texto crudo.
+    /// Reads the returned JWT, whether it comes as a JSON string or as raw text.
     /// </summary>
     private static async Task<string> ReadTokenAsync(HttpResponseMessage response, CancellationToken ct)
     {
         string body = (await response.Content.ReadAsStringAsync(ct)).Trim();
 
-        // Sin [Produces] en la acción, cuál de los dos formatters gana depende del Accept negociado.
+        // Without [Produces] on the action, which of the two formatters wins depends on the negotiated Accept.
         if (!body.StartsWith('"'))
             return body;
 
@@ -99,7 +99,7 @@ public sealed class AuthClient(HttpClient httpClient) : IAuthClient
     }
 
     /// <summary>
-    /// Extrae el mensaje para el usuario del LocalizedString con el que responden los errores de Account.
+    /// Extracts the user-facing message from the LocalizedString that Account errors respond with.
     /// </summary>
     private static async Task<string?> ReadLocalizedMessageAsync(
         HttpResponseMessage response,

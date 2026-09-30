@@ -3,10 +3,10 @@ using ScreeningLoader.Core.Run;
 namespace ScreeningLoader.Core.Audit;
 
 /// <summary>
-/// Una corrida anterior, reconstruida desde su registro de auditoría.
+/// A previous run, rebuilt from its audit log.
 /// </summary>
 /// <param name="OpeningTitle">
-/// Vacío en las corridas registradas antes de que el título se guardara; el host lo resuelve entonces.
+/// Empty for runs logged before the title was saved; the host resolves it in that case.
 /// </param>
 public sealed record RunRecord(
     string Id,

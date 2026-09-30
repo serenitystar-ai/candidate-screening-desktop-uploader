@@ -7,7 +7,7 @@ export interface FileRow {
   status: FileStatus;
   reason?: string;
 
-  /** El agente lo nombró en alguno de sus pasos. No se apaga: marca por dónde ya pasó. */
+  /** The agent named it in one of its steps. It never clears: it marks where the agent has been. */
   named?: boolean;
 }
 
@@ -38,8 +38,8 @@ export const initialRun: RunState = {
 };
 
 /**
- * Arranca con la carpeta entera a la vista, en el orden en que se leyó. Sin esto las filas van
- * apareciendo según terminan las subidas, que corren en paralelo, y el orden sale al azar.
+ * Starts with the whole folder in view, in the order it was read. Without this, rows appear as
+ * uploads finish, and since those run in parallel the order comes out random.
  */
 export function seed(detected: Detected[]): RunState {
   return {
@@ -49,17 +49,17 @@ export function seed(detected: Detected[]): RunState {
   };
 }
 
-/** Cuántos CV llegaron a un desenlace, que es lo que mide la barra. */
+/** How many CVs reached an outcome, which is what the progress bar measures. */
 export function settled(state: RunState): number {
   return state.files.filter((file) => file.status === "procesado" || file.status === "fallido").length;
 }
 
-/** Cuántos quedaron con su fila escrita. */
+/** How many ended up with their row written. */
 export function processed(state: RunState): number {
   return state.files.filter((file) => file.status === "procesado").length;
 }
 
-/** Los CV que fallaron, que es la parte accionable del resumen. */
+/** The CVs that failed, which is the actionable part of the summary. */
 export function failures(state: RunState): FileRow[] {
   return state.files.filter((file) => file.status === "fallido");
 }
@@ -67,7 +67,7 @@ export function failures(state: RunState): FileRow[] {
 export function reduce(state: RunState, event: RunEvent): RunState {
   switch (event.type) {
     case "runStarted":
-      // Las filas ya están sembradas desde la previsualización de la carpeta.
+      // The rows are already seeded from the folder preview.
       return { ...state, total: event.fileCount };
 
     case "fileUploading":
@@ -84,7 +84,7 @@ export function reduce(state: RunState, event: RunEvent): RunState {
       return track(state, event.fileName, "fallido", event.reason);
 
     case "analyzing":
-      // El turno se lo lleva el grupo entero, así que todos los que subieron entran a la vez.
+      // The whole group takes the turn, so everything that was uploaded goes in at once.
       return {
         ...state,
         step: "Leyendo los CV",
@@ -108,8 +108,8 @@ export function reduce(state: RunState, event: RunEvent): RunState {
 }
 
 /**
- * Marca el archivo que el paso del agente nombra. Se busca por nombre y no interpretando la frase, así
- * que si el agente cambia su redacción se pierde la marca y nada más.
+ * Marks the file the agent's step names. It matches by name rather than by interpreting the sentence,
+ * so if the agent changes its wording only the mark is lost.
  */
 function naming(state: RunState, step: string): RunState {
   const index = state.files.findIndex(
@@ -133,7 +133,7 @@ function track(state: RunState, fileName: string, status: FileStatus, reason?: s
 
   const files = [...state.files];
 
-  // La marca del agente sobrevive al cambio de estado: dice por dónde pasó, no dónde está.
+  // The agent's mark survives the status change: it says where the agent has been, not where it is.
   row.named = files[index]!.named;
 
   files[index] = row;

@@ -10,8 +10,8 @@ interface IconButtonProps {
 }
 
 /**
- * Un icono de la cabecera. El texto viaja en el tooltip y como nombre accesible, porque el icono solo
- * no dice qué hace.
+ * A header icon. The text travels in the tooltip and as the accessible name, because the icon alone
+ * doesn't say what it does.
  */
 export function IconButton({ icon: Icon, label, onClick, spinning }: IconButtonProps) {
   return (

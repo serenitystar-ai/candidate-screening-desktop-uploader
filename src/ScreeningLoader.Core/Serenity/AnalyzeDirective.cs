@@ -5,7 +5,7 @@ using ScreeningLoader.Core.Screening;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Arma el cuerpo de una ejecución de analyze-candidates.
+/// Builds the body of an analyze-candidates execution.
 /// </summary>
 internal static class AnalyzeDirective
 {
@@ -18,7 +18,7 @@ internal static class AnalyzeDirective
             action = Action,
             jobOpeningId = opening.Id,
             jobTitle = opening.Title,
-            // El agente puntúa contra este texto: no puede inferirlo del título ni buscarlo en el dataset.
+            // The agent scores against this text: it cannot infer it from the title or look it up in the dataset.
             jobDescription = opening.Description,
             cvs = cvs.Select(cv => new
             {
@@ -28,8 +28,8 @@ internal static class AnalyzeDirective
             })
         });
 
-        // action viaja dos veces: como clave hermana, para que la plataforma renderice el Liquid antes de que
-        // el modelo lea nada, y adentro de la directiva para que el modelo lo lea.
+        // action travels twice: as a sibling key, so the platform renders the Liquid before
+        // the model reads anything, and inside the directive so the model reads it.
         return
         [
             new { Key = "message", Value = (object)message },

@@ -19,7 +19,7 @@ import { reduce } from "./state/run-state";
 
 type Screen = "login" | "openings" | "folder" | "run" | "history" | "historyDetail" | "settings";
 
-/** Lo que dice la ayuda mientras nadie ha abierto los ajustes; coincide con el default del motor. */
+/** What the help says while nobody has opened the settings; matches the engine's default. */
 const DefaultFileSizeMb = 20;
 
 interface Exit {
@@ -81,14 +81,14 @@ export function App() {
     } catch (failure) {
       setFatal(describe(failure));
     } finally {
-      // Se sale del acceso incluso si falló, porque el patrón de error se dibuja bajo la cabecera y ahí
-      // están las dos salidas: los ajustes y cerrar sesión.
+      // Leave the login screen even if it failed, because the error pattern renders below the header and
+      // that's where both ways out are: settings and sign out.
       setScreen("openings");
       setBusy(false);
     }
   }, []);
 
-  /** Relee las ofertas sin vaciar la pantalla: el conteo de candidatos cambia por fuera de esta ventana. */
+  /** Rereads the job openings without clearing the screen: the candidate count changes outside this window. */
   async function refreshOpenings() {
     setRefreshing(true);
 
@@ -105,7 +105,7 @@ export function App() {
     try {
       await bridge.logout();
     } catch {
-      // Los tokens ya no sirven de todas formas: la pantalla vuelve al acceso igual.
+      // The tokens are useless either way: the screen goes back to login regardless.
     }
 
     setOpenings([]);
@@ -132,8 +132,8 @@ export function App() {
     } catch (failure) {
       const failed = describe(failure);
 
-      // Que ningún agente sirva la app no es un problema de credenciales: tiene su propia pantalla, y la
-      // salida está en los ajustes.
+      // No agent serving the app is not a credentials problem: it has its own screen, and the way
+      // out is in the settings.
       if (failed.code === "agentNotFound") {
         setFatal(failed);
         setScreen("openings");
@@ -183,7 +183,7 @@ export function App() {
   async function startRun() {
     if (!opening || !folder || !discovery) return;
 
-    // Se siembra sólo con lo que va a correr: los dejados fuera no tienen por qué aparecer «en cola».
+    // Seed only what is going to run: the files left out have no reason to show up «en cola».
     setRun(seed(discovery.detected.filter((file) => !excluded.has(file.fileName))));
     setAnalyzing(true);
     setScreen("run");
@@ -196,7 +196,7 @@ export function App() {
     }
   }
 
-  /** Devolver un fallido lo mueve en disco, así que la carpeta se relee y manda lo que diga. */
+  /** Restoring a failed file moves it on disk, so the folder is rescanned and its result wins. */
   async function restoreFailed(fileNames: string[]) {
     if (!folder) return;
 
@@ -253,7 +253,7 @@ export function App() {
     }
   }
 
-  /** Nada que salga de un análisis en marcha lo hace sin pasar por la confirmación. */
+  /** Nothing leaves an analysis in progress without going through the confirmation. */
   function leave(label: string, leaveNow: () => void) {
     if (analyzing) setExit({ label, leave: leaveNow });
     else leaveNow();
@@ -301,8 +301,8 @@ export function App() {
           />
         ) : null}
 
-        {/* Durante el análisis se oculta: llegar al historial pasaría por la confirmación, y cambiar de
-            pantalla no vale perder la corrida. */}
+        {/* Hidden during the analysis: reaching the history would go through the confirmation, and a
+            screen change isn't worth losing the run. */}
         {screen !== "history" && screen !== "historyDetail" && !analyzing ? (
           <IconButton icon={RotateCcwClock} label="Historial" onClick={() => void openHistory()} />
         ) : null}
@@ -437,7 +437,7 @@ export function App() {
     }
   }
 
-  /** La ayuda dice el tope vigente, no una cifra escrita a mano que envejece con el primer ajuste. */
+  /** The help states the current limit, not a hand-written figure that goes stale with the first change. */
   function sizeLimit(): number {
     return settings?.maxFileSizeMb ?? DefaultFileSizeMb;
   }
@@ -465,7 +465,7 @@ export function App() {
       );
     }
 
-    // Con la confirmación abierta el botón sobra: la decisión ya está en la franja.
+    // With the confirmation open the button is redundant: the decision is already in the banner.
     return (
       <RunProgress
         run={run}
@@ -475,7 +475,7 @@ export function App() {
   }
 }
 
-/** Un análisis detenido no deja totales, así que se cuentan los CV que sí llegaron a un desenlace. */
+/** A stopped analysis leaves no totals, so the CVs that did reach an outcome are counted. */
 function withPartialTotals(run: RunState): RunState {
   const done = processed(run);
 

@@ -5,7 +5,7 @@ using ScreeningLoader.Core.Run;
 namespace ScreeningLoader.Core.Audit;
 
 /// <summary>
-/// Lectura de los registros de auditoría de corridas anteriores.
+/// Reads the audit logs of previous runs.
 /// </summary>
 public sealed partial class RunHistory(string logDirectory)
 {
@@ -16,7 +16,7 @@ public sealed partial class RunHistory(string logDirectory)
     private static readonly string[] s_fieldSeparator = ["  "];
 
     /// <summary>
-    /// Devuelve las corridas registradas, de la más reciente a la más vieja.
+    /// Returns the logged runs, from newest to oldest.
     /// </summary>
     public IReadOnlyList<RunRecord> List(int limit)
     {
@@ -34,7 +34,7 @@ public sealed partial class RunHistory(string logDirectory)
     }
 
     /// <summary>
-    /// Devuelve una corrida por su identificador, o null si su registro ya no está.
+    /// Returns a run by its identifier, or null if its log is no longer there.
     /// </summary>
     public RunRecord? Find(string runId)
     {
@@ -85,8 +85,8 @@ public sealed partial class RunHistory(string logDirectory)
 
         foreach (string line in lines)
         {
-            // El registro se escribe como «momento  run/opening  detalle», y el detalle puede traer un
-            // nombre de archivo con espacios adentro.
+            // The log is written as «timestamp  run/opening  detail», and the detail can carry a
+            // file name with spaces in it.
             string[] fields = line.Split(s_fieldSeparator, 3, StringSplitOptions.None);
 
             if (fields.Length != 3)

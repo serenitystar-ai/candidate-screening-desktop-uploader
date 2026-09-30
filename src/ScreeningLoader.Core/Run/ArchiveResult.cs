@@ -1,11 +1,11 @@
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Un archivo que no se pudo mover, y por qué.
+/// A file that could not be moved, and why.
 /// </summary>
 public sealed record FailedMove(string FileName, string Reason);
 
 /// <summary>
-/// Qué quedó sin mover al repartir un lote.
+/// What was left unmoved when sorting a batch.
 /// </summary>
 public sealed record ArchiveResult(IReadOnlyList<FailedMove> FailedMoves);

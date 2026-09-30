@@ -1,10 +1,10 @@
 namespace ScreeningLoader.Core.Discovery;
 
 /// <summary>
-/// Lo que el motor encontró en una carpeta: qué procesa, qué descarta y en qué lotes.
+/// What the engine found in a folder: what it processes, what it discards and in which batches.
 /// </summary>
 /// <param name="Failed">
-/// Lo que quedó en la subcarpeta de fallidos. No entra a ningún lote: está para poder devolverlo.
+/// What was left in the failed subfolder. It goes into no batch: it is there so it can be restored.
 /// </param>
 public sealed record DiscoveryResult(
     IReadOnlyList<CvFile> Accepted,

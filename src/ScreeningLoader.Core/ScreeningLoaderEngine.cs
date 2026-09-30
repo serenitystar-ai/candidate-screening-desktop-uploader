@@ -10,7 +10,7 @@ using ScreeningLoader.Core.Serenity;
 namespace ScreeningLoader.Core;
 
 /// <summary>
-/// Superficie del motor que consume un host.
+/// The engine surface a host consumes.
 /// </summary>
 public sealed class ScreeningLoaderEngine : IDisposable
 {
@@ -18,7 +18,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
 
     private const int MinFileSizeMb = 1;
 
-    /// <summary>Tope del servidor web, que responde 413 cerca de los 30 MB.</summary>
+    /// <summary>The web server's cap, which responds 413 at around 30 MB.</summary>
     private const int MaxFileSizeMb = 25;
 
     private const int MinRetentionDays = 30;
@@ -30,7 +30,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
 
     private const string ChatBaseUrl = "https://chat.serenitystar.ai";
 
-    /// <summary>Versión de la micro app en la dirección donde se ven los candidatos.</summary>
+    /// <summary>The micro app version in the address where the candidates are shown.</summary>
     private const int AppVersion = 1;
 
     private const string FileSizeLabel = "El tamaño máximo por archivo";
@@ -68,54 +68,54 @@ public sealed class ScreeningLoaderEngine : IDisposable
 
         httpClient = new HttpClient(new TransportFaultHandler(TimeSpan.FromMilliseconds(options.RequestTimeoutMs)))
         {
-            // El tope por pedido lo pone el handler: el del HttpClient cortaría un turno por streaming.
+            // The handler sets the per-request cap: the HttpClient's own would cut off a streaming turn.
             Timeout = Timeout.InfiniteTimeSpan,
-            // Una BaseAddress sin barra final descarta su último segmento al combinar la ruta relativa.
+            // A BaseAddress without a trailing slash drops its last segment when combined with the relative route.
             BaseAddress = new Uri(options.BaseUrl.TrimEnd('/') + "/", UriKind.Absolute)
         };
 
         httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        // Los errores del Hub vienen localizados por el servidor; pedirlos en castellano evita traducirlos.
+        // The Hub's errors come localized by the server; asking for them in Spanish avoids translating them.
         httpClient.DefaultRequestHeaders.AcceptLanguage.Add(new StringWithQualityHeaderValue(InterfaceCulture));
 
         tokenStore = new TokenStore(new AuthClient(httpClient), timeProvider);
 
-        // Las opciones se leen por accesor y no por copia: el record es inmutable, así que resolver el
-        // agente o guardar un ajuste deja al cliente apuntando a una instancia que ya no rige. El this.
-        // es lo que hace que la lambda tome el campo y no el parámetro homónimo del constructor.
+        // The options are read through an accessor, not copied: the record is immutable, so resolving the
+        // agent or saving a setting would leave the client pointing at an instance that no longer applies. The this.
+        // is what makes the lambda capture the field and not the constructor parameter of the same name.
         serenityClient = new SerenityClient(httpClient, tokenStore, () => this.options, ResolvedAgentCode);
     }
 
     /// <summary>
-    /// La configuración vigente, con los ajustes de la persona ya aplicados.
+    /// The current configuration, with the person's settings already applied.
     /// </summary>
     public ScreeningLoaderOptions Options => options;
 
     /// <summary>
-    /// El agente que sirve la app configurada, o null mientras la sesión no lo resolvió.
+    /// The agent that serves the configured app, or null while the session has not resolved it.
     /// </summary>
     public string? AgentCode => agentCode;
 
     /// <summary>
-    /// Dónde ver los candidatos, en la micro app del agente resuelto.
+    /// Where to see the candidates, in the resolved agent's micro app.
     /// </summary>
     public string ResultsUrl =>
         $"{ChatBaseUrl}/chat/agent/{ResolvedAgentCode()}/app/{options.AppCode}/{AppVersion}";
 
     /// <summary>
-    /// Aplica los ajustes locales sobre los valores por defecto, y rechaza los que no son representables.
+    /// Applies the local settings over the defaults, and rejects the ones that cannot be represented.
     /// </summary>
     public void ApplySettings(SettingsOverlay settings)
     {
         string appCode = Trimmed(settings.AppCode) ?? defaults.AppCode;
 
-        // Otra app es otro agente, así que se olvida el que estaba resuelto y todo lo que salió de él.
+        // Another app is another agent, so the resolved one is forgotten along with everything derived from it.
         if (!string.Equals(appCode, options.AppCode, StringComparison.OrdinalIgnoreCase))
             ForgetAgent();
 
-        // Se parte siempre de los defaults y no de lo vigente: así vaciar un campo lo devuelve a su valor
-        // original en vez de acumular capas.
+        // Always start from the defaults and not from the current values: that way clearing a field returns it to its
+        // original value instead of stacking layers.
         options = defaults with
         {
             AppCode = appCode,
@@ -134,10 +134,10 @@ public sealed class ScreeningLoaderEngine : IDisposable
     }
 
     /// <summary>
-    /// Encuentra el agente que publica la app configurada y opera contra él el resto de la sesión.
+    /// Finds the agent that publishes the configured app and works against it for the rest of the session.
     /// </summary>
     /// <exception cref="AgentNotFoundException">
-    /// Ninguno lo publica, o lo publican varios y no hay forma de elegir.
+    /// None publishes it, or several do and there is no way to choose.
     /// </exception>
     public Task ResolveAgentAsync(CancellationToken ct) =>
         ObservedAsync("resolve-agent", async () =>
@@ -168,7 +168,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
         });
 
     /// <summary>
-    /// Devuelve el plan sin los archivos que la persona dejó fuera, con los lotes rearmados.
+    /// Returns the plan without the files the person left out, with the batches rebuilt.
     /// </summary>
     public DiscoveryResult Exclude(DiscoveryResult discovery, IEnumerable<string> fileNames)
     {
@@ -179,7 +179,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
 
         List<CvFile> kept = [.. discovery.Accepted.Where(file => !excluded.Contains(file.FileName))];
 
-        // El agrupamiento depende de BatchSize y MaxBatchBytes, así que lo rearma el motor y no el host.
+        // The grouping depends on BatchSize and MaxBatchBytes, so the engine rebuilds it and not the host.
         return new DiscoveryResult(
             kept,
             [
@@ -193,19 +193,19 @@ public sealed class ScreeningLoaderEngine : IDisposable
     }
 
     /// <summary>
-    /// Autentica al usuario contra el AI Hub.
+    /// Authenticates the user against the AI Hub.
     /// </summary>
     public Task LoginAsync(string email, string password, CancellationToken ct) =>
         ObservedAsync("login", () => tokenStore.LoginAsync(email, password, ct));
 
     /// <summary>
-    /// Devuelve el código de la skill del dataset que publica el agente.
+    /// Returns the code of the dataset skill the agent publishes.
     /// </summary>
     public Task<string> GetDatasetSkillCodeAsync(CancellationToken ct) =>
         ObservedAsync("dataset-skill-code", () => ResolveDatasetSkillCodeAsync(ct));
 
     /// <summary>
-    /// Devuelve las búsquedas laborales de la organización, cada una con su conteo de candidatos.
+    /// Returns the organization's job openings, each with its candidate count.
     /// </summary>
     public Task<IReadOnlyList<JobOpening>> ListJobOpeningsAsync(CancellationToken ct) =>
         ObservedAsync("list-job-openings", async () =>
@@ -216,19 +216,19 @@ public sealed class ScreeningLoaderEngine : IDisposable
         });
 
     /// <summary>
-    /// Clasifica los archivos de una carpeta y arma los lotes que se procesarían.
+    /// Classifies the files in a folder and builds the batches that would be processed.
     /// </summary>
     public Task<DiscoveryResult> DiscoverAsync(string folder, CancellationToken ct) =>
         ObservedAsync("discover", async () =>
         {
-            // Los tipos aceptados los publica el agente: una copia local se desactualizaría en silencio.
+            // The agent publishes the accepted types: a local copy would silently go stale.
             acceptedMimeTypes ??= await serenityClient.GetAcceptedMimeTypesAsync(ct);
 
             return new FileDiscovery(options).Discover(folder, acceptedMimeTypes);
         });
 
     /// <summary>
-    /// Devuelve a la carpeta los archivos que estaban en la de fallidos, y la vuelve a leer.
+    /// Moves the files that were in the failed folder back to the folder, and reads it again.
     /// </summary>
     public Task<DiscoveryResult> RestoreFailedAsync(
         string folder,
@@ -242,16 +242,16 @@ public sealed class ScreeningLoaderEngine : IDisposable
         });
 
     /// <summary>
-    /// Sube los archivos de un lote y devuelve los que quedaron listos para una ejecución.
+    /// Uploads the files of a batch and returns the ones that ended up ready for an execution.
     /// </summary>
     public Task<UploadOutcome> UploadBatchAsync(Batch batch, Action<RunEvent> emit, CancellationToken ct) =>
         ObservedAsync("upload-batch", async () => await (await ResolveRunnerAsync(ct)).UploadBatchAsync(batch, emit, ct));
 
     /// <summary>
-    /// Procesa una carpeta entera, lote por lote, y emite el avance.
+    /// Processes an entire folder, batch by batch, and emits the progress.
     /// </summary>
     /// <param name="discovery">
-    /// Lo que el host ya clasificó y mostró, para que lo previsualizado y lo que corre sean lo mismo.
+    /// What the host already classified and showed, so that what was previewed and what runs are the same.
     /// </param>
     public async IAsyncEnumerable<RunEvent> RunAsync(
         JobOpening opening,
@@ -273,38 +273,38 @@ public sealed class ScreeningLoaderEngine : IDisposable
     }
 
     /// <summary>
-    /// Renueva el access token de la sesión sin esperar a que esté por vencer.
+    /// Renews the session's access token without waiting for it to be about to expire.
     /// </summary>
     public Task RefreshSessionAsync(CancellationToken ct) =>
         ObservedAsync("refresh", () => tokenStore.ForceRefreshAsync(ct));
 
     /// <summary>
-    /// Cierra la sesión y olvida lo que se resolvió con ella.
+    /// Closes the session and forgets what was resolved with it.
     /// </summary>
     public Task LogoutAsync(CancellationToken ct) =>
         ObservedAsync("logout", async () =>
         {
             await tokenStore.CloseAsync(ct);
 
-            // La configuración del agente se resuelve una vez por sesión, y la próxima puede ser de otro
+            // The agent's configuration is resolved once per session, and the next one may belong to another
             // tenant.
             ForgetAgent();
         });
 
     /// <summary>
-    /// Devuelve las corridas registradas, de la más reciente a la más vieja.
+    /// Returns the recorded runs, from most recent to oldest.
     /// </summary>
     public IReadOnlyList<RunRecord> ListRuns(int limit) => history.List(limit);
 
     /// <summary>
-    /// Devuelve una corrida anterior por su identificador, o null si su registro ya no está.
+    /// Returns a previous run by its identifier, or null if its record is no longer there.
     /// </summary>
     public RunRecord? FindRun(string runId) => history.Find(runId);
 
     public void Dispose() => httpClient.Dispose();
 
     /// <summary>
-    /// El agente contra el que opera la sesión, o un fatal si el acceso todavía no lo descubrió.
+    /// The agent the session works against, or a fatal error if sign-in has not discovered it yet.
     /// </summary>
     private string ResolvedAgentCode() =>
         agentCode ?? throw new ScreeningLoaderException(
@@ -312,7 +312,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
             "Todavía no se resolvió el agente que sirve la app.");
 
     /// <summary>
-    /// Olvida el agente y todo lo que se resolvió a través de él.
+    /// Forgets the agent and everything that was resolved through it.
     /// </summary>
     private void ForgetAgent()
     {
@@ -338,7 +338,7 @@ public sealed class ScreeningLoaderEngine : IDisposable
     }
 
     /// <summary>
-    /// El código lo publica el agente y no se configura, así que se resuelve una vez por sesión.
+    /// The agent publishes the code and it is not configured, so it is resolved once per session.
     /// </summary>
     private async Task<string> ResolveDatasetSkillCodeAsync(CancellationToken ct) =>
         datasetSkillCode ??= await serenityClient.GetDatasetSkillCodeAsync(ct);

@@ -4,12 +4,12 @@ using ScreeningLoader.Core.Screening;
 namespace ScreeningLoader.Core.Run;
 
 /// <summary>
-/// Resolución de qué archivo produjo cada fila.
+/// Resolves which file produced each row.
 /// </summary>
 internal static class Reconciler
 {
     /// <summary>
-    /// Asigna a cada archivo del lote su desenlace.
+    /// Assigns each file in the batch its outcome.
     /// </summary>
     public static BatchOutcome Reconcile(
         Batch batch,
@@ -31,8 +31,8 @@ internal static class Reconciler
             else if (failures.TryGetValue(file.FileName, out FailedCv? failure))
                 toReview.Add(failure);
             else
-                // Un CV que desaparece sin fila y sin explicación es el único desenlace que nadie detecta
-                // contando, así que se lo trata como fallido en vez de dejarlo en pendientes.
+                // A CV that vanishes with no row and no explanation is the only outcome nobody catches
+                // by counting, so it is treated as failed instead of being left pending.
                 toReview.Add(new FailedCv(file.FileName, "El agente no lo acusó ni insertado ni fallido."));
         }
 

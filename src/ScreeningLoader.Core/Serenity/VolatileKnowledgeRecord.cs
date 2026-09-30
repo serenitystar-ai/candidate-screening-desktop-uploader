@@ -1,22 +1,22 @@
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Resultado de una subida de volatile knowledge.
+/// The result of a volatile knowledge upload.
 /// </summary>
 public sealed record VolatileKnowledgeRecord
 {
-    /// <summary>Identificador que ancla el archivo a la ejecución.</summary>
+    /// <summary>The identifier that anchors the file to the execution.</summary>
     public required Guid Id { get; init; }
 
-    /// <summary>Identificador con el que se descarga el archivo; puede venir vacío.</summary>
+    /// <summary>The identifier the file is downloaded with; it may come empty.</summary>
     public Guid? FileId { get; init; }
 
     public required string Status { get; init; }
 
-    /// <summary>El archivo terminó de procesarse y el agente puede leerlo.</summary>
+    /// <summary>The file finished processing and the agent can read it.</summary>
     public bool IsReady => Status.Equals(Ready, StringComparison.OrdinalIgnoreCase);
 
-    /// <summary>El Hub todavía lo está procesando.</summary>
+    /// <summary>The Hub is still processing it.</summary>
     public bool IsPending => Status.Equals(Pending, StringComparison.OrdinalIgnoreCase);
 
     private const string Ready = "success";

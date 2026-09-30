@@ -5,7 +5,7 @@ using ScreeningLoader.Core.Run;
 namespace ScreeningLoader.Core.Audit;
 
 /// <summary>
-/// Registro de una corrida, para auditoría y diagnóstico.
+/// Log of a run, for auditing and diagnostics.
 /// </summary>
 public sealed class AuditLog
 {
@@ -37,34 +37,34 @@ public sealed class AuditLog
 
         Prune(logDirectory, timeProvider, retentionDays);
 
-        // El título va en el registro para que el historial no dependa de que la oferta siga en el dataset.
-        // Un puesto no es un dato personal, así que no toca la regla de no registrar datos del candidato.
+        // The title goes in the log so the history does not depend on the job opening still being in the dataset.
+        // A job title is not personal data, so it does not break the rule against logging candidate data.
         Write($"opening-title={Sanitize(openingTitle)}");
     }
 
-    /// <summary>Un archivo con su fila escrita y archivado.</summary>
+    /// <summary>A file whose row was written and that was archived.</summary>
     public void Processed(int batchNumber, string fileName) =>
         Write($"batch={batchNumber} file={fileName} inserted moved");
 
-    /// <summary>Un archivo que no llegó a tener fila.</summary>
+    /// <summary>A file that never got a row.</summary>
     public void ToReview(int batchNumber, string fileName, string reason) =>
         Write($"batch={batchNumber} file={fileName} failed reason={Sanitize(reason)}");
 
-    /// <summary>Un archivo que el filtro dejó afuera antes de subir nada.</summary>
+    /// <summary>A file the filter left out before anything was uploaded.</summary>
     public void Rejected(string fileName, RejectionReason reason) =>
         Write($"file={fileName} rejected reason={reason}");
 
-    /// <summary>Un archivo que quedó donde estaba porque no se pudo mover.</summary>
+    /// <summary>A file that stayed where it was because it could not be moved.</summary>
     public void MoveFailed(int batchNumber, FailedMove move) =>
         Write($"batch={batchNumber} file={move.FileName} move-failed reason={Sanitize(move.Reason)}");
 
-    /// <summary>Una espera antes de reintentar.</summary>
+    /// <summary>A wait before retrying.</summary>
     public void Retrying(int batchNumber, RetryWaiting waiting) =>
         Write(
             $"batch={batchNumber} retry op={waiting.Operation} attempt={waiting.Attempt} "
             + $"delay={waiting.Delay.TotalSeconds:F0}s reason={Sanitize(waiting.Reason)}");
 
-    /// <summary>El cierre de la corrida, con sus totales.</summary>
+    /// <summary>The end of the run, with its totals.</summary>
     public void Completed(RunTotals totals) =>
         Write(
             $"run-completed processed={totals.Processed} to-review={totals.ToReview} "
@@ -72,8 +72,8 @@ public sealed class AuditLog
 
     private void Write(string line)
     {
-        // Nombre de archivo, resultado y momento. Nunca el nombre del candidato, su mail, su teléfono ni
-        // una línea de sus observaciones.
+        // File name, outcome and timestamp. Never the candidate's name, email, phone number or
+        // a single line of their observations.
         string entry = $"{timeProvider.GetUtcNow():O}  run={runId} opening={openingId}  {line}{Environment.NewLine}";
 
         try
@@ -83,7 +83,7 @@ public sealed class AuditLog
         }
         catch (Exception)
         {
-            // Un registro que no se puede escribir no puede tirar abajo la corrida.
+            // A log that cannot be written must not bring down the run.
         }
     }
 
@@ -95,7 +95,7 @@ public sealed class AuditLog
     }
 
     /// <summary>
-    /// Borra los registros de corridas viejas, que son datos personales de bajo grado acumulándose.
+    /// Deletes the logs of old runs, which are low-grade personal data piling up.
     /// </summary>
     private static void Prune(string logDirectory, TimeProvider timeProvider, int retentionDays)
     {

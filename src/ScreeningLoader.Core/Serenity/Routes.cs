@@ -1,7 +1,7 @@
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Rutas relativas del AI Hub, sobre el BaseAddress del HttpClient.
+/// Relative AI Hub routes, on top of the HttpClient's BaseAddress.
 /// </summary>
 internal static class Routes
 {
@@ -9,7 +9,7 @@ internal static class Routes
     public const string Refresh = "api/v2/Account/refresh";
 
     /// <summary>
-    /// Agentes publicados a Nexus, con el canal de cada uno. Pide rol NexusUser.
+    /// Agents published to Nexus, with each one's channel. Requires the NexusUser role.
     /// </summary>
     public static string NexusAgents(int pageSize) => $"api/v2/agent/nexus?page=1&pageSize={pageSize}";
 
@@ -23,8 +23,8 @@ internal static class Routes
         $"api/v2/agent/{Uri.EscapeDataString(agentCode)}/volatileKnowledge/mimeTypes";
 
     /// <summary>
-    /// Subida de un archivo al agente. processEmbeddings viaja siempre explícito porque hay tres
-    /// defaults distintos en juego según por dónde se entre.
+    /// Upload of a file to the agent. processEmbeddings is always sent explicitly because there are three
+    /// different defaults in play depending on the entry point.
     /// </summary>
     public static string AgentVolatileKnowledge(string agentCode, bool processEmbeddings) =>
         $"api/v2/agent/{Uri.EscapeDataString(agentCode)}/volatileKnowledge"

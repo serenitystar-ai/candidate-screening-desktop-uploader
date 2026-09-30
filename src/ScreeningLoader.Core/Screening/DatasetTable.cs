@@ -5,7 +5,7 @@ using ScreeningLoader.Core.Errors;
 namespace ScreeningLoader.Core.Screening;
 
 /// <summary>
-/// El resultado tabular de una consulta al dataset.
+/// The tabular result of a dataset query.
 /// </summary>
 internal sealed class DatasetTable
 {
@@ -44,7 +44,7 @@ internal sealed class DatasetTable
 }
 
 /// <summary>
-/// Una fila del resultado, direccionable por nombre de columna.
+/// A row of the result, addressable by column name.
 /// </summary>
 internal readonly struct DatasetRow(Dictionary<string, int> columns, JsonElement[] cells)
 {
@@ -61,7 +61,7 @@ internal readonly struct DatasetRow(Dictionary<string, int> columns, JsonElement
             : 0;
 
     /// <summary>
-    /// Un datetime del dataset, que llega como texto plano sin zona y está expresado en UTC.
+    /// A dataset datetime, which arrives as plain text without a zone and is expressed in UTC.
     /// </summary>
     public DateTimeOffset? Timestamp(string column) =>
         DateTimeOffset.TryParseExact(

@@ -1,17 +1,17 @@
 namespace ScreeningLoader.Core.Auth;
 
 /// <summary>
-/// Acceso a la cuenta del AI Hub.
+/// Access to the AI Hub account.
 /// </summary>
 public interface IAuthClient
 {
     /// <summary>
-    /// Abre una sesión con las credenciales del usuario.
+    /// Opens a session with the user's credentials.
     /// </summary>
     Task<Session> LoginAsync(string email, string password, CancellationToken ct);
 
     /// <summary>
-    /// Devuelve un access token nuevo para la sesión.
+    /// Returns a new access token for the session.
     /// </summary>
     Task<string> RefreshAsync(Session session, CancellationToken ct);
 }

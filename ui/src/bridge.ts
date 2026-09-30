@@ -1,11 +1,11 @@
-/** Cómo reacciona la corrida ante un error, tal como lo declara el motor. */
+/** How the run reacts to an error, as declared by the engine. */
 export type ErrorKind = "Transient" | "File" | "Fatal";
 
-/** Error del motor que llegó por el puente, con su clase intacta. */
+/** Engine error that came through the bridge, with its kind intact. */
 export class BridgeError extends Error {
   readonly kind: ErrorKind;
 
-  /** Marca los fatales que tienen su propia pantalla. Null en el resto. */
+  /** Flags the fatal errors that have their own screen. Null for the rest. */
   readonly code: string | null;
 
   constructor(kind: ErrorKind, message: string, code: string | null = null) {
@@ -149,7 +149,7 @@ function send<T>(type: string, payload?: unknown): Promise<T> {
   });
 }
 
-/** Escucha los avisos que el motor empuja por su cuenta. Devuelve cómo dejar de escucharlos. */
+/** Listens to the notifications the engine pushes on its own. Returns how to stop listening. */
 export function on(event: "run", handler: (progress: RunEvent) => void): () => void;
 export function on(event: "closeRequested", handler: () => void): () => void;
 export function on(event: string, handler: (payload: never) => void): () => void {
@@ -161,72 +161,72 @@ export function on(event: string, handler: (payload: never) => void): () => void
   return () => forEvent.delete(handler);
 }
 
-/** Autentica contra el AI Hub y deja la sesión lista para operar sobre el agente. */
+/** Authenticates against the AI Hub and leaves the session ready to operate on the agent. */
 export function login(email: string, password: string): Promise<void> {
   return send<void>("login", { email, password });
 }
 
-/** Cierra la sesión y olvida lo que se cargó con ella. */
+/** Ends the session and forgets what was loaded with it. */
 export function logout(): Promise<void> {
   return send<void>("logout");
 }
 
-/** Devuelve los ajustes vigentes. */
+/** Returns the current settings. */
 export function readSettings(): Promise<Settings> {
   return send<Settings>("readSettings");
 }
 
-/** Guarda los ajustes. El motor rechaza los valores que no admite. */
+/** Saves the settings. The engine rejects values it doesn't accept. */
 export function saveSettings(settings: Settings): Promise<void> {
   return send<void>("saveSettings", settings);
 }
 
-/** Devuelve las ofertas de la organización, de la más reciente a la más antigua. */
+/** Returns the organization's job openings, newest to oldest. */
 export function listOpenings(): Promise<Opening[]> {
   return send<Opening[]>("listOpenings");
 }
 
-/** Devuelve la carpeta que se usó la última vez para esta oferta, si sigue existiendo. */
+/** Returns the folder last used for this job opening, if it still exists. */
 export function rememberedFolder(openingId: string): Promise<string | null> {
   return send<string | null>("rememberedFolder", { openingId });
 }
 
-/** Abre el diálogo de carpeta del sistema. */
+/** Opens the system folder dialog. */
 export function pickFolder(openingId: string): Promise<string | null> {
   return send<string | null>("pickFolder", { openingId });
 }
 
-/** Revisa la carpeta y devuelve qué entra y qué queda fuera. */
+/** Scans the folder and returns what goes in and what is left out. */
 export function discover(folder: string): Promise<Discovery> {
   return send<Discovery>("discover", { folder });
 }
 
-/** Devuelve a la carpeta los archivos indicados de la subcarpeta de fallidos, y la vuelve a leer. */
+/** Moves the given files from the `fallidos/` subfolder back to the folder, and rescans it. */
 export function restoreFailed(folder: string, fileNames: string[]): Promise<Discovery> {
   return send<Discovery>("restoreFailed", { folder, fileNames });
 }
 
-/** Lanza el análisis, sin los archivos que se dejaron fuera. El avance llega por el aviso «run». */
+/** Starts the analysis without the files left out. Progress arrives through the «run» notice. */
 export function startRun(openingId: string, folder: string, excluded: string[]): Promise<void> {
   return send<void>("startRun", { openingId, folder, excluded });
 }
 
-/** Detiene el análisis en marcha. */
+/** Stops the analysis in progress. */
 export function cancelRun(): Promise<void> {
   return send<void>("cancelRun");
 }
 
-/** Devuelve los análisis anteriores. */
+/** Returns the previous analyses. */
 export function listRuns(): Promise<PastRun[]> {
   return send<PastRun[]>("listRuns");
 }
 
-/** Abre Candidate Screening Studio en el navegador. */
+/** Opens Candidate Screening Studio in the browser. */
 export function openResults(): Promise<void> {
   return send<void>("openResults");
 }
 
-/** Cierra la ventana, ya confirmado que se puede. */
+/** Closes the window, once it has been confirmed that it can. */
 export function closeWindow(): Promise<void> {
   return send<void>("closeWindow");
 }

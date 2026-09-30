@@ -11,7 +11,7 @@ using ScreeningLoader.Core.Screening;
 namespace ScreeningLoader.Shell;
 
 /// <summary>
-/// Traduce los mensajes del WebView a operaciones del motor y sus respuestas de vuelta.
+/// Translates WebView messages into engine operations, and their results back.
 /// </summary>
 internal sealed class Bridge(
     Control owner,
@@ -34,7 +34,7 @@ internal sealed class Bridge(
     private string discoveryFolder = string.Empty;
     private CancellationTokenSource? runCancellation;
 
-    /// <summary>Hay un análisis en marcha, así que cerrar la ventana no es inocuo.</summary>
+    /// <summary>An analysis is in progress, so closing the window is not harmless.</summary>
     public bool IsRunning => runCancellation is not null;
 
     public void Attach()
@@ -45,7 +45,7 @@ internal sealed class Bridge(
         }
         catch (ScreeningLoaderException ex)
         {
-            // Un ajuste guardado que ya no vale —el archivo se editó a mano— no puede impedir abrir.
+            // A saved setting that is no longer valid (the file was edited by hand) must not prevent opening.
             errorLog.Write("settings", ex);
         }
 
@@ -53,7 +53,7 @@ internal sealed class Bridge(
     }
 
     /// <summary>
-    /// Avisa a la interfaz de que se intentó cerrar la ventana, para que confirme con su propia voz.
+    /// Tells the interface that closing the window was attempted, so it confirms in its own voice.
     /// </summary>
     public void RequestClose() => PostEvent("closeRequested", new { });
 
@@ -84,7 +84,7 @@ internal sealed class Bridge(
         }
         catch (Exception ex)
         {
-            // Lo que no clasificó el motor no tiene política, así que corta la operación en curso.
+            // What the engine did not classify has no policy, so it aborts the operation in progress.
             errorLog.Write($"bridge-{command.Type}", ex);
             Post(new BridgeReply(command.Id, Result: null, new BridgeError(ErrorKind.Fatal, ex.Message)));
         }
@@ -118,12 +118,12 @@ internal sealed class Bridge(
 
         await engine.LoginAsync(credentials.Email, credentials.Password, ct);
 
-        // El agente sale de la app configurada, no de una constante: así la aplicación sirve en cualquier
-        // tenant sin recompilar.
+        // The agent comes from the configured app, not from a constant, so the application works in any
+        // tenant without recompiling.
         await engine.ResolveAgentAsync(ct);
 
-        // Resolver la skill acá es lo que hace que la falta de permiso sobre el agente se vea al entrar
-        // y no recién al lanzar el primer análisis.
+        // Resolving the skill here is what makes a missing permission on the agent show up at sign-in
+        // rather than only when the first analysis is launched.
         await engine.GetDatasetSkillCodeAsync(ct);
 
         return null;
@@ -135,7 +135,7 @@ internal sealed class Bridge(
 
         await engine.LogoutAsync(ct);
 
-        // Lo cacheado es lo que vio esta sesión; la próxima puede ser de otra persona.
+        // The cache holds what this session saw; the next one may belong to someone else.
         openings = [];
         discovery = null;
         discoveryFolder = string.Empty;
@@ -144,7 +144,7 @@ internal sealed class Bridge(
     }
 
     /// <summary>
-    /// Los ajustes vigentes, que son los defaults del motor con lo que la persona haya cambiado encima.
+    /// The current settings: the engine defaults with whatever the person changed on top.
     /// </summary>
     private Task<object?> ReadSettings()
     {
@@ -175,7 +175,7 @@ internal sealed class Bridge(
         SettingsWire wire = payload.Deserialize<SettingsWire>(s_json)
             ?? throw new ScreeningLoaderException(ErrorKind.Fatal, "Los ajustes llegaron vacíos.");
 
-        // El motor valida y lanza si algo no es representable, así que se guarda sólo lo que ya aplicó.
+        // The engine validates and throws on anything unrepresentable, so only what it applied is saved.
         SettingsOverlay overlay = new(
             wire.AppCode,
             wire.MaxFileSizeMb,
@@ -191,8 +191,8 @@ internal sealed class Bridge(
 
         try
         {
-            // Una app que no resuelve a ningún agente no se guarda: se comprueba antes de dejarla escrita,
-            // y si no vale la sesión se queda como estaba.
+            // An app that resolves to no agent is not saved: it is checked before being written,
+            // and if it is not valid the session stays as it was.
             if (appChanged)
             {
                 await engine.ResolveAgentAsync(ct);
@@ -286,8 +286,8 @@ internal sealed class Bridge(
 
     private Task<object?> OpenResults()
     {
-        // La arma el motor con el agente resuelto, y es https por construcción: eso es lo que hace
-        // seguro lanzarla con el navegador del sistema.
+        // The engine builds it from the resolved agent, and it is https by construction: that is what makes
+        // it safe to launch with the system browser.
         Process.Start(new ProcessStartInfo(engine.ResultsUrl) { UseShellExecute = true })?.Dispose();
 
         return Task.FromResult<object?>(null);
@@ -301,7 +301,7 @@ internal sealed class Bridge(
     }
 
     /// <summary>
-    /// Corre el análisis y empuja su avance a la interfaz.
+    /// Runs the analysis and pushes its progress to the interface.
     /// </summary>
     private async Task PumpAsync(
         JobOpening opening,
@@ -311,7 +311,7 @@ internal sealed class Bridge(
     {
         try
         {
-            // Lo previsualizado y lo que corre tienen que ser lo mismo; sólo se relee si la carpeta cambió.
+            // What was previewed and what runs must be the same; the folder is only re-read if it changed.
             DiscoveryResult scanned =
                 discovery is { } cached
                 && string.Equals(discoveryFolder, folder, StringComparison.OrdinalIgnoreCase)
@@ -387,7 +387,7 @@ internal sealed class Bridge(
 
     private void Post(object message)
     {
-        // El análisis corre fuera del hilo de la ventana, y el WebView sólo se toca desde ahí.
+        // The analysis runs off the window thread, and the WebView may only be touched from there.
         if (owner.InvokeRequired)
             owner.BeginInvoke(() => Send(message));
         else
@@ -402,7 +402,7 @@ internal sealed class Bridge(
         }
         catch (Exception ex) when (ex is InvalidOperationException or ObjectDisposedException)
         {
-            // La ventana se está cerrando: ya no hay a quién avisarle.
+            // The window is closing: there is no one left to notify.
         }
     }
 

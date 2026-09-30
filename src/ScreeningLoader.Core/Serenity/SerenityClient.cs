@@ -11,7 +11,7 @@ using ScreeningLoader.Core.Screening;
 namespace ScreeningLoader.Core.Serenity;
 
 /// <summary>
-/// Los contratos del AI Hub que usa el motor, sobre HttpClient.
+/// The AI Hub contracts the engine uses, over HttpClient.
 /// </summary>
 public sealed class SerenityClient(
     HttpClient httpClient,
@@ -23,13 +23,13 @@ public sealed class SerenityClient(
 
     private const string InterfaceCulture = "es";
 
-    /// <summary>Tope del endpoint. Se pide entero para no paginar por una lista de decenas.</summary>
+    /// <summary>The endpoint's cap. Requested in full to avoid paginating a list of dozens.</summary>
     private const int NexusAgentPageSize = 1000;
 
     private const string ConfigurationSkillCode = "GetSerenityAppConfiguration";
     private const string DatasetSkillCodeProperty = "datasetSkillCode";
 
-    /// <summary>Las opciones vigentes del motor, con los ajustes de la persona ya aplicados.</summary>
+    /// <summary>The engine's current options, with the person's settings already applied.</summary>
     private ScreeningLoaderOptions Options => currentOptions();
 
     public async Task<JsonElement> ExecuteSkillAsync(string skillCode, object? body, CancellationToken ct)
@@ -64,7 +64,7 @@ public sealed class SerenityClient(
         if (page?.Items is null)
             throw new ScreeningLoaderException(ErrorKind.Fatal, "El AI Hub no devolvió la lista de agentes.");
 
-        // Un tenant con más agentes que la página se detecta acá y no dejando fuera al que buscábamos.
+        // A tenant with more agents than the page is detected here rather than by leaving out the one we were looking for.
         if (page.Total > page.Items.Count)
         {
             throw new ScreeningLoaderException(
@@ -79,7 +79,7 @@ public sealed class SerenityClient(
     {
         JsonElement configuration = await ExecuteSkillAsync(ConfigurationSkillCode, body: null, ct);
 
-        // Una configuración ausente no puede degradar a vacío: sería indistinguible de un dataset sin filas.
+        // A missing configuration cannot degrade to empty: it would be indistinguishable from a dataset with no rows.
         if (configuration.ValueKind is not JsonValueKind.Object
             || !configuration.TryGetProperty(DatasetSkillCodeProperty, out JsonElement code)
             || code.ValueKind is not JsonValueKind.String
@@ -130,7 +130,7 @@ public sealed class SerenityClient(
 
         try
         {
-            // El cuerpo se lee a medida que llega: con la respuesta completa no hay progreso que mostrar.
+            // The body is read as it arrives: with the full response there is no progress to show.
             using HttpResponseMessage response = await SendAuthenticatedAsync(
                 request,
                 "analyze-candidates",
@@ -154,18 +154,18 @@ public sealed class SerenityClient(
         {
             throw new ScreeningLoaderException(
                 ErrorKind.Transient,
-                "El turno de análisis no terminó dentro del tiempo de espera.",
+                "The analysis turn did not finish within the timeout.",
                 ex);
         }
     }
 
     /// <summary>
-    /// Lee el progreso de un evento del stream, o null si no lo lleva.
+    /// Reads the progress from a stream event, or null if it carries none.
     /// </summary>
     private static AgentProgress? ReadProgress(string name, JsonElement data)
     {
-        // El progreso es decoración: un evento con una forma inesperada no puede tirar abajo un turno que
-        // para entonces ya puede estar escribiendo filas.
+        // Progress is decoration: an event with an unexpected shape cannot bring down a turn that
+        // by then may already be writing rows.
         try
         {
             return AgentProgress.Parse(name, data);
@@ -177,7 +177,7 @@ public sealed class SerenityClient(
     }
 
     /// <summary>
-    /// El texto final del turno, que es el recibo.
+    /// The turn's final text, which is the receipt.
     /// </summary>
     private static string ReadTurnContent(JsonElement result) =>
         result.ValueKind is JsonValueKind.Object
@@ -195,13 +195,13 @@ public sealed class SerenityClient(
 
         VolatileKnowledgeRecord record = await UploadAsync(file, ct);
 
-        // Un archivo trabado no cambia de estado nunca: el Hub mapea cualquier estado que no reconoce
-        // a "analyzing", así que sin un tope propio este bucle no termina.
+        // A stuck file never changes status: the Hub maps any status it does not recognize
+        // to "analyzing", so without a cap of our own this loop never ends.
         using CancellationTokenSource attempt = CancellationTokenSource.CreateLinkedTokenSource(ct);
         attempt.CancelAfter(TimeSpan.FromMilliseconds(Options.UploadPollTimeoutMs));
 
-        // Una sola vez: es un cambio de estado del archivo, no un latido. Emitirlo por vuelta llena el
-        // host de líneas repetidas cuando un archivo tarda, que es justo cuando hay que poder leerlo.
+        // Only once: it is a change in the file's status, not a heartbeat. Emitting it on every pass floods the
+        // host with repeated lines when a file is slow, which is exactly when it needs to be readable.
         if (record.IsPending)
             emit(new FileProcessing(file.FileName));
 
@@ -214,20 +214,20 @@ public sealed class SerenityClient(
                 await Task.Delay(wait, attempt.Token);
                 record = await GetVolatileKnowledgeAsync(record.Id, attempt.Token);
 
-                // A un archivo que tarda no hace falta preguntarle cada segundo: son llamadas contra el
-                // mismo límite de tasa que necesita el resto de la corrida.
+                // A slow file does not need to be asked every second: those are calls against the
+                // same rate limit the rest of the run needs.
                 wait = wait * 2 < s_maxPollInterval ? wait * 2 : s_maxPollInterval;
             }
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            // El motivo va sin el nombre del archivo: quien lo reporta ya lo lleva aparte.
+            // The reason goes without the file name: whoever reports it already carries it separately.
             throw new ScreeningLoaderException(
                 ErrorKind.File,
                 "El AI Hub no terminó de procesarlo a tiempo.");
         }
 
-        // Ejecutar contra un archivo aceptado pero sin procesar arma un candidato sobre un documento vacío.
+        // Executing against a file that was accepted but not processed builds a candidate on an empty document.
         if (!record.IsReady)
             throw new ScreeningLoaderException(ErrorKind.File, $"El AI Hub lo dejó en '{record.Status}'.");
 
@@ -304,17 +304,17 @@ public sealed class SerenityClient(
     }
 
     /// <summary>
-    /// Traduce el estado de la respuesta a la taxonomía del motor.
+    /// Translates the response status to the engine's taxonomy.
     /// </summary>
     /// <param name="rejectionKind">
-    /// Cómo tratar un rechazo del pedido. En una subida es el archivo el que no sirve, no la corrida.
+    /// How to treat a rejection of the request. In an upload it is the file that is unusable, not the run.
     /// </param>
     private void EnsureSucceeded(HttpResponseMessage response, string operation, ErrorKind rejectionKind)
     {
         if (response.IsSuccessStatusCode)
             return;
 
-        // El cuerpo de un fallo del dataset arrastra la sentencia, y con ella la fila del candidato.
+        // The body of a dataset failure carries the statement, and with it the candidate's row.
         (ErrorKind kind, string message) = response.StatusCode switch
         {
             HttpStatusCode.Unauthorized =>
@@ -343,7 +343,7 @@ public sealed class SerenityClient(
     }
 
     /// <summary>
-    /// Cuánto pidió esperar el servidor, venga como segundos o como fecha.
+    /// How long the server asked to wait, whether it comes as seconds or as a date.
     /// </summary>
     private static TimeSpan? ReadRetryAfter(HttpResponseMessage response)
     {
