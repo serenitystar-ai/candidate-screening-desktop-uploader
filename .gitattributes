@@ -1,0 +1,2 @@
+# La copia del design system se diffea contra su origen, así que no se le tocan los finales de línea.
+ui/src/vendor/design-system/** -text

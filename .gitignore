@@ -1,0 +1,26 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+artifacts/
+publish/
+
+# Node
+node_modules/
+ui/dist/
+.pnpm-store/
+
+# Configuración local
+appsettings.Development.json
+*.local.json
+launchSettings.json
+
+# Instalador
+installer/Output/
+
+# Sistema operativo
+Thumbs.db
+.DS_Store

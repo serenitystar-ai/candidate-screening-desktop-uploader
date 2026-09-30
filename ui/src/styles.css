@@ -1,0 +1,17 @@
+@import "@repo/ui/styles/globals.css";
+@import "@repo/ui/styles/fonts.css";
+
+/* Tailwind descubre las clases desde este archivo, y la mitad de ellas vive en el vendor. */
+@source "./**/*.{ts,tsx}";
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+  }
+}

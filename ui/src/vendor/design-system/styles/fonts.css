@@ -1,0 +1,12 @@
+@font-face {
+  font-family: "Questrial"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("./fonts/questrial-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Rubik"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("./fonts/rubik-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Rubik"; font-style: normal; font-weight: 600;
+  font-display: swap; src: url("./fonts/rubik-600.woff2") format("woff2");
+}
