@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>ScreeningLoader.Shell</RootNamespace>
+    <AssemblyName>ScreeningLoader.Shell</AssemblyName>
+    <!-- The installer reads it from here, so the version lives in a single place. -->
+    <Version>0.9.0</Version>
+    <Product>Candidate Screening Loader</Product>
+    <Company>Serenity Star</Company>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- ApplicationIcon gives it to the executable, which is what Explorer sees; it is also embedded because the
+         window needs to read it for its title bar. -->
+    <EmbeddedResource Include="app.ico" LogicalName="app.ico" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <!-- Without this, WebView2Loader.dll sits loose next to the executable and it is no longer a single file. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- The .pdb and documentation .xml files of references have no place in what gets distributed. -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
+    <ProjectReference Include="../ScreeningLoader.Core/ScreeningLoader.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="../../ui/dist/**/*">
+      <LogicalName>web/$([System.String]::Copy('%(RecursiveDir)%(Filename)%(Extension)').Replace('\','/'))</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <!-- The package also references the WPF control, which drags in another WindowsBase and clutters the build. -->
+  <Target Name="DropWebView2Wpf" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RequireUiBundle" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <UiBundleMissing Condition="!Exists('$(MSBuildProjectDirectory)/../../ui/dist/index.html')">true</UiBundleMissing>
+    </PropertyGroup>
+
+    <!-- In debug the window can point to the dev server, so the bundle is not required there. -->
+    <Warning
+      Condition="'$(UiBundleMissing)' == 'true' And '$(Configuration)' != 'Release'"
+      Text="No interface bundle. Build it with «pnpm -C ui build» or point the window to the dev server." />
+
+    <Error
+      Condition="'$(UiBundleMissing)' == 'true' And '$(Configuration)' == 'Release'"
+      Text="The interface bundle is missing. Build it first: pnpm -C ui build" />
+  </Target>
+
+</Project>

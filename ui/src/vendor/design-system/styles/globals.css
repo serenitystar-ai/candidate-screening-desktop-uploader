@@ -1,0 +1,256 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Make `dark:` utilities respond to our NAMESPACED dark class on the shadow host /
+   :root instead of Tailwind v4's default `prefers-color-scheme`. Covers both shadow
+   containers (mountPoint + portalContainer descend from :host(.serenity-dark)) and
+   the light-DOM playground (:root.serenity-dark). The class is `serenity-dark`, not
+   the bare `dark`, so a host app's own global `.dark { … }` rules can't match our
+   shadow host (which is a light-DOM element) and clobber our tokens. Keep this in
+   sync with DARK_CLASS in create-microapp.tsx. */
+@custom-variant dark (&:where(:host(.serenity-dark) *, :root.serenity-dark *, :host(.serenity-dark), :root.serenity-dark));
+
+/* 1) RAW BRAND TOKENS — defined on :host AND :root so they resolve both
+      inside a shadow root (microapp) and in the light DOM (playground). */
+:host,
+:root {
+  /* ink & neutrals */
+  --ink-900: #050a2b;
+  --ink-700: #21264d;
+  --ink-600: #373b55;
+  --ink-500: #606060;
+  --ink-300: #979797;
+  --gray-50: #f9f9f9;
+  --border-color: #e1e4e8;
+
+  /* star blue ramp */
+  --star-50:  #edf1ff;
+  --star-100: #dce2ff;
+  --star-200: #c2cbff;
+  --star-300: #a2afff;
+  --star-400: #6e82ff;
+  --star-500: #4862ff;
+  --star-600: #353fe0;
+  --star-800: #262a4e;
+  --star-900: #050a2b; /* == ink-900 */
+
+  /* status */
+  --success-bg: #d9f3e4; --success-fg: #047857;
+  --danger-bg:  #fde4e3; --danger-fg:  #b91c1c;
+  --warning-bg: #fdf0dc; --warning-fg: #b45309;
+  --info-bg:    #dde3ff; --info-fg:    var(--star-600);
+
+  /* 2) shadcn SEMANTIC MAPPINGS onto brand tokens */
+  --radius: 1rem;                 /* // ADJUST — cards in the ref are generously rounded */
+  --background: #ffffff;
+  --foreground: var(--ink-900);
+  --card: #ffffff;
+  --card-foreground: var(--ink-900);
+  --popover: #ffffff;
+  --popover-foreground: var(--ink-900);
+  --primary: var(--star-500);
+  --primary-foreground: #ffffff;
+  --secondary: var(--star-50);
+  --secondary-foreground: var(--star-600);
+  --muted: var(--gray-50);
+  --muted-foreground: var(--ink-300);
+  --accent: var(--star-50);
+  --accent-foreground: var(--star-600);
+  --destructive: var(--danger-fg);
+  --destructive-foreground: #ffffff;
+  --border: var(--border-color);
+  --input: var(--border-color);
+  --ring: var(--star-400);
+
+  /* Tailwind v4 border utilities emit `border-style: var(--tw-border-style)` and
+     rely on `@property --tw-border-style { initial-value: solid }` to supply the
+     value. @property at-rules are NOT registered when the stylesheet is injected via
+     adoptedStyleSheets into a shadow root (Chromium), so inside a mounted microapp
+     the var is unset, `border-style` collapses to `none`, and EVERY border (row
+     dividers, accent bars, checkbox outlines) disappears regardless of width/color.
+     Declaring it here as a normal inherited custom property makes borders render in
+     the shadow root without depending on @property. */
+  --tw-border-style: solid;
+}
+
+/* DARK THEME — matches the host's neutral shadcn/zinc palette. Activated by the
+   `.serenity-dark` class on the shadow host (or :root in the light-DOM playground), so it
+   cascades to both the component mountPoint and the portal container. The brand
+   blue ramp stays fixed across themes (as the host keeps its `primary` ramp
+   fixed); only the low tints used AS SURFACES are remapped so they don't glow on
+   black. @theme inline already maps --color-* -> var(--token), so overriding the
+   raw variables here is enough for every token utility to flip. */
+:host(.serenity-dark),
+:root.serenity-dark {
+  /* surfaces — a real elevation ladder so cards read as raised, not flat:
+       page #0a0a0a  <  card/inputs #171717  <  popover #1f1f1f  <  muted fills #262626.
+     (The host uses card == background; we deliberately deviate — see plan §6 — because
+     these microapp screens are mostly card + border, and a flat scale washes out.) */
+  --background: #0a0a0a;   /* page / deepest layer */
+  --card:       #171717;   /* raised surface — cards lift off the page */
+  --popover:    #1f1f1f;   /* dropdowns/dialogs above cards */
+  --muted:      #262626;   /* filled chips / icon tiles */
+  --muted-foreground: #a3a3a3;
+  --gray-50:    #262626;   /* "subtle fill" / hover raise */
+
+  /* text — invert the ink ramp to neutral lights (headings brightest) */
+  --foreground: #fafafa;   /* host 0 0% 98% */
+  --ink-900:    #fafafa;   /* headings */
+  --ink-700:    #e5e5e5;
+  --ink-600:    #d4d4d4;
+  --ink-500:    #d4d4d4;   /* body */
+  --ink-300:    #a3a3a3;   /* captions (== muted-foreground) */
+
+  /* borders / inputs — brighter than the host's #262626 so hairlines actually read
+     on both the page and raised cards (the flat look was mostly invisible borders). */
+  --border-color: #333333;
+  --border: #333333;
+  --input:  #333333;
+
+  /* focus ring — DEVIATION from host (host ring is neutral #262626, ~invisible).
+     We keep a brand-blue ring for accessibility. */
+  --ring: #5f7eff;
+
+  /* brand — primary stays the fixed blue (host primary.DEFAULT #4862FF) */
+  --primary: #4862ff;   --primary-foreground: #ffffff;
+
+  /* secondary/accent -> neutral surfaces, brand-tint foreground so chips/icons on
+     them stay recognizably brand-blue and legible */
+  --secondary: #262626; --secondary-foreground: #8b9fff; /* host primary-300 */
+  --accent:    #262626; --accent-foreground:    #8b9fff;
+
+  /* brand tint fills USED AS SURFACES -> dark neutrals so they don't glow on black.
+     star-200..900 stay FIXED (illustration strokes, borders, primary line). */
+  --star-50:  #1f1f1f;   /* icon tiles, dashed-button hover — a hair above card */
+  --star-100: #262626;
+
+  /* status — dark fills + lightened foregrounds (validated as a set for AA) */
+  --success-bg: #0f2a1c; --success-fg: #4ade80;
+  --danger-bg:  #2e1416; --danger-fg:  #f87171;
+  --warning-bg: #2e2410; --warning-fg: #fbbf24;
+  --info-bg:    #1e2340; --info-fg:    #8b9fff;
+
+  /* `--destructive` follows `--danger-fg`, which is LIGHTENED here so error text reads
+     on black — so on dark it is a fill that wants dark ink, not white. White on #f87171
+     is ~2.4:1; this is ~6.6:1. Light mode keeps white on the deep #b91c1c. */
+  --destructive-foreground: #1a0b0c;
+}
+
+/* 3) EXPOSE tokens to Tailwind as utilities. `inline` is REQUIRED: it makes the
+      generated utilities reference var(--token) directly, so they follow the
+      :host definitions into the shadow tree instead of a :root-only value. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  /* Without this mapping `text-destructive-foreground` is not a utility at all, so the
+     destructive Button silently inherits its ambient text colour — invisible on the red
+     fill whenever it sits inside a danger surface. */
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* brand ramp as utilities, e.g. bg-star-500, text-ink-300 */
+  --color-star-50: var(--star-50);
+  --color-star-100: var(--star-100);
+  --color-star-200: var(--star-200);
+  --color-star-300: var(--star-300);
+  --color-star-400: var(--star-400);
+  --color-star-500: var(--star-500);
+  --color-star-600: var(--star-600);
+  --color-star-800: var(--star-800);
+  --color-star-900: var(--star-900);
+  --color-ink-900: var(--ink-900);
+  --color-ink-700: var(--ink-700);
+  --color-ink-600: var(--ink-600);
+  --color-ink-500: var(--ink-500);
+  --color-ink-300: var(--ink-300);
+  --color-gray-50: var(--gray-50);
+
+  /* status as utilities */
+  --color-success-bg: var(--success-bg); --color-success-fg: var(--success-fg);
+  --color-danger-bg:  var(--danger-bg);  --color-danger-fg:  var(--danger-fg);
+  --color-warning-bg: var(--warning-bg); --color-warning-fg: var(--warning-fg);
+  --color-info-bg:    var(--info-bg);    --color-info-fg:    var(--info-fg);
+
+  /* fonts */
+  --font-display: "Questrial", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Rubik", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 8px);
+}
+
+/* 4) BASE + SEMANTIC TYPOGRAPHY CLASSES */
+@layer base {
+  :host, :root { font-family: var(--font-sans); color: var(--ink-500); }
+  * { border-color: var(--border); }
+}
+
+/* Minimal, theme-aware scrollbar. Opt-in via `.minimal-scroll` so we don't
+   restyle host-app scrollbars. Firefox uses scrollbar-width/color; Chromium/
+   WebKit use the ::-webkit pseudo-elements. Colors ride the border token so
+   the thumb reads on both light and dark surfaces, and the track stays
+   transparent so it doesn't add a visible gutter. */
+@layer components {
+  .minimal-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .minimal-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .minimal-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .minimal-scroll::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+  .minimal-scroll:hover::-webkit-scrollbar-thumb {
+    background-color: var(--ink-300);
+  }
+  .minimal-scroll::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer components {
+  .text-display {
+    font-family: var(--font-display);
+    font-size: 24px; letter-spacing: -0.02em;
+    line-height: 1.05; color: var(--ink-900);
+    font-weight: 600 !important;
+  }
+  .text-page-title {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 1.75rem; letter-spacing: -0.01em; line-height: 1.2; color: var(--ink-900);
+  }
+  .text-card-heading {
+    font-family: var(--font-sans); font-weight: 600;
+    font-size: 1.125rem; line-height: 1.3; color: var(--ink-900);
+  }
+  .text-body {
+    font-family: var(--font-sans); font-weight: 400;
+    font-size: 0.9375rem; line-height: 1.5; color: var(--ink-500);
+  }
+  .text-caption {
+    font-family: var(--font-sans); font-weight: 400;
+    font-size: 0.8125rem; line-height: 1.4; color: var(--ink-300);
+  }
+}

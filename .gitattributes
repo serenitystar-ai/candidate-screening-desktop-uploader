@@ -1,0 +1,2 @@
+# Vendored files are kept byte-identical, so their line endings are left untouched.
+ui/src/vendor/design-system/** -text
