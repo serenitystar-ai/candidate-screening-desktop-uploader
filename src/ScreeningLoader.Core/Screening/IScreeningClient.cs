@@ -11,9 +11,10 @@ public interface IScreeningClient
     Task<IReadOnlyList<JobOpening>> ListJobOpeningsAsync(CancellationToken ct);
 
     /// <summary>
-    /// Returns the file that produced each of the given rows.
+    /// Returns the file that produced each of the given rows of a job opening.
     /// </summary>
     Task<IReadOnlyList<InsertedCandidate>> GetInsertedAsync(
+        string jobOpeningId,
         IReadOnlyList<string> ids,
         CancellationToken ct);
 

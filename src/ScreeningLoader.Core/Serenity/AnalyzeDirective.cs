@@ -22,6 +22,8 @@ internal static class AnalyzeDirective
             jobDescription = opening.Description,
             cvs = cvs.Select(cv => new
             {
+                // The model does not generate random ids: the ones it makes up repeat across turns.
+                candidateId = cv.CandidateId,
                 volatileKnowledgeId = cv.VolatileKnowledgeId,
                 fileId = cv.FileId?.ToString() ?? string.Empty,
                 fileName = cv.File.FileName

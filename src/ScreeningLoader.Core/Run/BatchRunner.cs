@@ -83,6 +83,7 @@ public sealed class BatchRunner(
 
         AnalyzeReceipt receipt = AnalyzeReceipt.Empty;
         bool turnCompleted = false;
+        List<Guid> candidateIds = [];
 
         if (uploaded.Ready.Count > 0)
         {
@@ -90,11 +91,21 @@ public sealed class BatchRunner(
 
             try
             {
-                // The batch is retried with the same ids: they expire by time, not by use, so a 429
+                // The batch is retried with the same upload ids: they expire by time, not by use, so a 429
                 // on the execution does not cost re-uploading anything.
                 receipt = await retryPolicy.ExecuteAsync(
                     "analyze",
-                    token => serenityClient.AnalyzeAsync(opening, uploaded.Ready, emit, token),
+                    token =>
+                    {
+                        // Fresh candidate ids on every attempt: a timed-out turn may keep writing rows, and
+                        // the retry would duplicate them under the same id.
+                        IReadOnlyList<UploadedCv> attempt =
+                            [.. uploaded.Ready.Select(cv => cv with { CandidateId = Guid.NewGuid() })];
+
+                        candidateIds.AddRange(attempt.Select(cv => cv.CandidateId));
+
+                        return serenityClient.AnalyzeAsync(opening, attempt, emit, token);
+                    },
                     emit,
                     ct);
 
@@ -111,6 +122,7 @@ public sealed class BatchRunner(
         IReadOnlyList<InsertedCandidate> inserted = await ResolveInsertedAsync(
             opening,
             uploaded,
+            candidateIds,
             receipt,
             turnCompleted,
             emit,
@@ -239,6 +251,7 @@ public sealed class BatchRunner(
     private async Task<IReadOnlyList<InsertedCandidate>> ResolveInsertedAsync(
         JobOpening opening,
         UploadOutcome uploaded,
+        IReadOnlyList<Guid> candidateIds,
         AnalyzeReceipt receipt,
         bool turnCompleted,
         Action<RunEvent> emit,
@@ -246,11 +259,19 @@ public sealed class BatchRunner(
     {
         List<InsertedCandidate> confirmed = [];
 
-        if (receipt.InsertedIds.Count > 0)
+        // The receipt's ids cover an agent that still makes up its own instead of copying the ones sent.
+        IReadOnlyList<string> ids =
+        [
+            .. candidateIds.Select(id => id.ToString())
+                .Concat(receipt.InsertedIds)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+        ];
+
+        if (ids.Count > 0)
         {
             confirmed.AddRange(await retryPolicy.ExecuteAsync(
                 "reconcile",
-                token => screeningClient.GetInsertedAsync(receipt.InsertedIds, token),
+                token => screeningClient.GetInsertedAsync(opening.Id, ids, token),
                 emit,
                 ct));
         }

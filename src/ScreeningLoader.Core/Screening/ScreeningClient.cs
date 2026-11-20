@@ -30,14 +30,17 @@ public sealed class ScreeningClient(ISerenityClient serenityClient, string datas
     }
 
     public async Task<IReadOnlyList<InsertedCandidate>> GetInsertedAsync(
+        string jobOpeningId,
         IReadOnlyList<string> ids,
         CancellationToken ct)
     {
         if (ids.Count == 0)
             return [];
 
+        // Older rows carry model-made ids that repeat across job openings.
         DatasetTable table = await SelectAsync(
-            $"SELECT id, cv_file_name FROM Candidates WHERE id IN ({Sql.IdList(ids)})",
+            $"SELECT id, cv_file_name FROM Candidates WHERE job_opening_id = {Sql.Id(jobOpeningId)} "
+                + $"AND id IN ({Sql.IdList(ids)})",
             ["Candidates"],
             ct);
 

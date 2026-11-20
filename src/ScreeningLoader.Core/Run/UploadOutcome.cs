@@ -8,6 +8,11 @@ namespace ScreeningLoader.Core.Run;
 /// </summary>
 public sealed record UploadedCv(CvFile File, Guid VolatileKnowledgeId, Guid? FileId)
 {
+    /// <summary>
+    /// The id the agent writes on the candidate's row.
+    /// </summary>
+    public Guid CandidateId { get; init; } = Guid.NewGuid();
+
     internal static UploadedCv From(CvFile file, VolatileKnowledgeRecord record) =>
         new(file, record.Id, record.FileId);
 }
