@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches the app version
+        run: |
+          $tag = "${{ github.event.release.tag_name }}"
+          $version =(Select-Xml -Path src/ScreeningLoader.Shell/ScreeningLoader.Shell.csproj -XPath '//Version').Node.InnerText
+          $tagVersion = $tag.TrimStart('v').Split('-')[0]
+          if ($tagVersion -ne $version) {
+            Write-Error "Tag $tag does not match <Version>$version</Version> in ScreeningLoader.Shell.csproj."
+            exit 1
+          }
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ui/pnpm-lock.yaml
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build the interface
+        run: |
+          pnpm -C ui install --frozen-lockfile
+          pnpm -C ui build
+
+      - name: Publish the executable
+        run: dotnet publish src/ScreeningLoader.Shell -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+
+      - name: Build the installer
+        run: |
+          choco install innosetup --no-progress -y
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" installer\CandidateScreeningLoader.iss
+
+      - name: Attach the installer to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $installer = Get-ChildItem installer\Output\CandidateScreeningLoaderSetup-*.exe
+          gh release upload "${{ github.event.release.tag_name }}" $installer.FullName --clobber

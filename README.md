@@ -17,9 +17,9 @@ This is a polyglot repo: both toolchains are needed to build all of it.
 There are three chained steps, and each one consumes what the previous one left behind:
 
 ```
-pnpm -C ui build   →  ui/dist/                          the compiled interface
-dotnet publish     →  ScreeningLoader.Shell.exe         embeds ui/dist inside
-ISCC.exe           →  CandidateScreeningLoaderSetup.exe packages that executable
+pnpm -C ui build   →  ui/dist/                                    the compiled interface
+dotnet publish     →  ScreeningLoader.Shell.exe                   embeds ui/dist inside
+ISCC.exe           →  CandidateScreeningLoaderSetup-<version>.exe packages that executable
 ```
 
 None can be skipped: `publish` fails if `ui/dist` is missing, and the installer compiler aborts if the
@@ -53,7 +53,7 @@ dotnet publish src/ScreeningLoader.Shell -c Release -r win-x64 --self-contained 
 & "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" installer\CandidateScreeningLoader.iss
 ```
 
-The output is `installer\Output\CandidateScreeningLoaderSetup.exe`, about 33 MB. It installs per user, without
+The output is `installer\Output\CandidateScreeningLoaderSetup-<version>.exe`, about 33 MB. It installs per user, without
 administrator rights. Details are in [`installer/`](installer/README.md).
 
 ## Development

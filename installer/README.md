@@ -1,6 +1,6 @@
 # Installer
 
-`CandidateScreeningLoaderSetup.exe`, built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
+`CandidateScreeningLoaderSetup-<version>.exe`, built with [Inno Setup 6](https://jrsoftware.org/isinfo.php).
 
 ## Building it
 
@@ -27,6 +27,25 @@ assume the former.
 
 **The version comes from the executable**, which takes it from `<Version>` in `ScreeningLoader.Shell.csproj`.
 Bump it there, not here.
+
+## Releasing
+
+Publishing a GitHub release runs the [Release workflow](../.github/workflows/release.yml), which builds the
+installer on a Windows runner and attaches it to that release a couple of minutes later. Its tag has to be
+`v<Version>`, matching `<Version>` in `ScreeningLoader.Shell.csproj`; otherwise the workflow fails before
+building and the release is left without an installer, so delete it, fix the tag and publish again.
+
+From the browser: **Releases → Draft a new release**, choose a tag, type `v0.9.1` and pick **Create new tag on
+publish**, target `main`, **Generate release notes**, and **Publish release**. Tick **Set as a pre-release** for
+a build that is not meant for users yet.
+
+From a terminal, the same thing:
+
+```bash
+gh release create v0.9.1 --target main --generate-notes
+```
+
+Pushing a tag alone does nothing: the workflow runs on the release, not on the tag.
 
 ## What it does
 

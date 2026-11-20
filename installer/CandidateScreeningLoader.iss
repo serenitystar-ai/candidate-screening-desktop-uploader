@@ -11,6 +11,14 @@
 #define Version GetVersionNumbersString(Publicado)
 #define Editor "Serenity Star"
 
+; The file name carries the three-part version of the csproj, not the four-part one Windows reports.
+#define Mayor
+#define Menor
+#define Parche
+#define Compilacion
+#expr GetVersionComponents(Publicado, Mayor, Menor, Parche, Compilacion)
+#define VersionCorta Str(Mayor) + "." + Str(Menor) + "." + Str(Parche)
+
 [Setup]
 ; Never change this: it is what identifies the installed application across versions.
 AppId={{8A6F2C41-3D5E-4B7A-9E10-6C2B4F8D1A93}
@@ -34,7 +42,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 OutputDir=Output
-OutputBaseFilename=CandidateScreeningLoaderSetup
+OutputBaseFilename=CandidateScreeningLoaderSetup-{#VersionCorta}
 SetupIconFile=..\src\ScreeningLoader.Shell\app.ico
 WizardStyle=modern
 UninstallDisplayName={#Nombre}
